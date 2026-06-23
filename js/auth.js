@@ -33,15 +33,20 @@ loginForm.addEventListener('submit', async (e) => {
   const email = document.getElementById('email').value;
   const password = document.getElementById('password').value;
 
-  const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+  try {
+    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
-  if (error) {
-    console.error('Login error:', error);
-    loginError.textContent = 'Login failed: ' + error.message;
-    return;
+    if (error) {
+      console.error('Login error:', error);
+      loginError.textContent = 'Login failed: ' + error.message;
+      return;
+    }
+
+    showApp();
+  } catch (err) {
+    console.error('Unexpected login error:', err);
+    loginError.textContent = 'Unexpected error: ' + err.message;
   }
-
-  showApp();
 });
 
 logoutBtn.addEventListener('click', async () => {
