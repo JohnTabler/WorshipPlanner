@@ -8,6 +8,9 @@ function showApp() {
   loginView.classList.add('hidden');
   appView.classList.remove('hidden');
   if (typeof loadSongs === 'function') loadSongs();
+  if (typeof loadMusicians === 'function') loadMusicians();
+  if (typeof loadUnavailableDates === 'function') loadUnavailableDates();
+  if (typeof loadServices === 'function') loadServices();
 }
 
 function showLogin() {
