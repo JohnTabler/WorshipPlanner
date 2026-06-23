@@ -36,7 +36,8 @@ loginForm.addEventListener('submit', async (e) => {
   const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
   if (error) {
-    loginError.textContent = 'Login failed. Check your email and password.';
+    console.error('Login error:', error);
+    loginError.textContent = 'Login failed: ' + error.message;
     return;
   }
 
