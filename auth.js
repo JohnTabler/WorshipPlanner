@@ -7,6 +7,7 @@ const logoutBtn = document.getElementById('logout-btn');
 function showApp() {
   loginView.classList.add('hidden');
   appView.classList.remove('hidden');
+  if (typeof loadSongs === 'function') loadSongs();
 }
 
 function showLogin() {

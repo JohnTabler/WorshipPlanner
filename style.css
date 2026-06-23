@@ -49,3 +49,72 @@ header {
 main {
   padding: 1.5rem;
 }
+
+#songs-section {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+#song-form {
+  background: white;
+  padding: 1.25rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+#song-form input,
+#song-form textarea {
+  padding: 0.5rem;
+  border: 1px solid #d6d3d1;
+  border-radius: 4px;
+  flex: 1 1 150px;
+}
+#song-form textarea {
+  flex: 1 1 100%;
+  resize: vertical;
+}
+.form-actions {
+  flex: 1 1 100%;
+  display: flex;
+  gap: 0.5rem;
+}
+#song-form button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+#song-submit-btn { background: #44403c; color: white; }
+#song-cancel-btn { background: #e7e5e4; }
+
+#song-search {
+  width: 100%;
+  padding: 0.5rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid #d6d3d1;
+  border-radius: 4px;
+}
+
+#songs-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+#songs-table th, #songs-table td {
+  text-align: left;
+  padding: 0.5rem;
+  border-bottom: 1px solid #e7e5e4;
+  font-size: 0.9rem;
+}
+#songs-table button {
+  padding: 0.25rem 0.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 0.25rem;
+}
+.edit-btn { background: #d6d3d1; }
+.delete-btn { background: #fecaca; }
