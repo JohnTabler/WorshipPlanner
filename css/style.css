@@ -121,3 +121,111 @@ main {
 }
 .edit-btn { background: #d6d3d1; }
 .delete-btn { background: #fecaca; }
+
+/* Nav bar */
+#main-nav {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: white;
+  border-bottom: 1px solid #e7e5e4;
+  flex-wrap: wrap;
+}
+.nav-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 500;
+}
+.nav-btn.active {
+  background: #44403c;
+  color: white;
+}
+
+/* Generic styles for forms/tables added in Musicians, Calendar, Order of Service, Email */
+main form {
+  background: white;
+  padding: 1.25rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+main form input,
+main form select,
+main form textarea {
+  padding: 0.5rem;
+  border: 1px solid #d6d3d1;
+  border-radius: 4px;
+  flex: 1 1 150px;
+}
+main form textarea {
+  flex: 1 1 100%;
+  resize: vertical;
+}
+main form button[type="submit"] {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background: #44403c;
+  color: white;
+}
+
+main table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  margin-bottom: 1.5rem;
+}
+main table th, main table td {
+  text-align: left;
+  padding: 0.5rem;
+  border-bottom: 1px solid #e7e5e4;
+  font-size: 0.9rem;
+}
+main table button {
+  padding: 0.25rem 0.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 0.25rem;
+  background: #d6d3d1;
+}
+
+/* Standalone selects in Order of Service / Email (outside a <form>) */
+#oos-service-select,
+#email-service-select {
+  padding: 0.5rem;
+  border: 1px solid #d6d3d1;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  min-width: 250px;
+}
+
+/* Email Generator output box */
+#email-output {
+  width: 100%;
+  min-height: 400px;
+  font-family: monospace;
+  padding: 1rem;
+  border: 1px solid #d6d3d1;
+  border-radius: 4px;
+  margin-bottom: 0.75rem;
+}
+#email-copy-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background: #44403c;
+  color: white;
+}
+#email-copy-status {
+  color: #166534;
+  font-size: 0.85rem;
+}
