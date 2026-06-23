@@ -12,12 +12,75 @@ const serviceSearch = document.getElementById('service-search');
 
 let allServices = [];
 
+// How many upcoming Sundays to keep auto-populated
+const SUNDAY_LOOKAHEAD_COUNT = 8;
+
 function resetServiceForm() {
   serviceForm.reset();
   serviceIdField.value = '';
   serviceSubmitBtn.textContent = 'Add Service';
   serviceCancelBtn.classList.add('hidden');
   serviceError.textContent = '';
+}
+
+// ---- Local-time date helpers ----
+// Deliberately avoid toISOString() here: it converts to UTC and can shift
+// the calendar date by a day depending on the browser's timezone offset.
+function startOfToday() {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+}
+
+function getNextSundayOnOrAfter(date) {
+  const result = new Date(date);
+  const day = result.getDay(); // 0 = Sunday
+  const diff = (7 - day) % 7;
+  result.setDate(result.getDate() + diff);
+  return result;
+}
+
+function formatLocalISODate(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function getNthSundayLabel(date) {
+  const nth = Math.ceil(date.getDate() / 7);
+  const labels = ['1st Sunday', '2nd Sunday', '3rd Sunday', '4th Sunday', '5th Sunday'];
+  return labels[nth - 1] || `${nth}th Sunday`;
+}
+
+// Ensures the next SUNDAY_LOOKAHEAD_COUNT Sundays exist as services.
+// Never overwrites an existing row for a date that's already there - so a
+// Sunday you've renamed to "Easter" or "Christmas Eve" is never touched.
+async function ensureUpcomingSundaysExist() {
+  const cursor = getNextSundayOnOrAfter(startOfToday());
+  const existingDates = new Set(allServices.map((s) => s.service_date));
+  const missing = [];
+
+  for (let i = 0; i < SUNDAY_LOOKAHEAD_COUNT; i++) {
+    const isoDate = formatLocalISODate(cursor);
+    if (!existingDates.has(isoDate)) {
+      missing.push({
+        service_date: isoDate,
+        title: getNthSundayLabel(cursor),
+        service_type: 'regular'
+      });
+    }
+    cursor.setDate(cursor.getDate() + 7);
+  }
+
+  if (missing.length === 0) return;
+
+  const { data, error } = await supabaseClient.from('services').insert(missing).select();
+  if (error) {
+    console.error('Error auto-creating upcoming Sundays:', error);
+    return;
+  }
+
+  allServices = [...allServices, ...data].sort((a, b) => a.service_date.localeCompare(b.service_date));
 }
 
 async function loadServices() {
@@ -32,6 +95,9 @@ async function loadServices() {
   }
 
   allServices = data;
+
+  await ensureUpcomingSundaysExist();
+
   renderServices(allServices);
   if (typeof populateServiceDropdown === 'function') populateServiceDropdown();
   if (typeof populateEmailServiceDropdown === 'function') populateEmailServiceDropdown();
