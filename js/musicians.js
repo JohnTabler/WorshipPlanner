@@ -9,6 +9,7 @@ const musicianSubmitBtn = document.getElementById('musician-submit-btn');
 const musicianCancelBtn = document.getElementById('musician-cancel-btn');
 const musicianError = document.getElementById('musician-error');
 const musiciansTbody = document.getElementById('musicians-tbody');
+const musicianSearch = document.getElementById('musician-search');
 
 const unavailableForm = document.getElementById('unavailable-form');
 const unavailableMusicianSelect = document.getElementById('unavailable-musician');
@@ -73,6 +74,15 @@ function populateMusicianDropdown() {
 function findMusicianById(id) {
   return allMusicians.find((m) => m.id === id);
 }
+
+musicianSearch.addEventListener('input', () => {
+  const term = musicianSearch.value.toLowerCase();
+  const filtered = allMusicians.filter((m) =>
+    m.name.toLowerCase().includes(term) ||
+    (m.instruments || []).join(' ').toLowerCase().includes(term)
+  );
+  renderMusicians(filtered);
+});
 
 musicianForm.addEventListener('submit', async (e) => {
   e.preventDefault();

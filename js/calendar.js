@@ -8,6 +8,7 @@ const serviceSubmitBtn = document.getElementById('service-submit-btn');
 const serviceCancelBtn = document.getElementById('service-cancel-btn');
 const serviceError = document.getElementById('service-error');
 const servicesTbody = document.getElementById('services-tbody');
+const serviceSearch = document.getElementById('service-search');
 
 let allServices = [];
 
@@ -58,6 +59,16 @@ function renderServices(services) {
 function findServiceById(id) {
   return allServices.find((s) => s.id === id);
 }
+
+serviceSearch.addEventListener('input', () => {
+  const term = serviceSearch.value.toLowerCase();
+  const filtered = allServices.filter((s) =>
+    s.service_date.includes(term) ||
+    (s.title || '').toLowerCase().includes(term) ||
+    s.service_type.toLowerCase().includes(term)
+  );
+  renderServices(filtered);
+});
 
 serviceForm.addEventListener('submit', async (e) => {
   e.preventDefault();
