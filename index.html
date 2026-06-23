@@ -40,11 +40,14 @@
           <input type="hidden" id="song-id">
           <input type="text" id="song-title" placeholder="Title" required>
           <input type="text" id="song-artist" placeholder="Artist">
-          <input type="text" id="song-key" placeholder="Key (e.g. G)">
           <input type="number" id="song-bpm" placeholder="BPM">
-          <input type="url" id="song-youtube" placeholder="YouTube link">
-          <input type="url" id="song-chart" placeholder="Chord chart link">
           <input type="text" id="song-tags" placeholder="Tags (comma separated)">
+          <select id="song-energy">
+            <option value="">Energy (none)</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
           <input type="date" id="song-last-played">
           <textarea id="song-notes" placeholder="Notes"></textarea>
           <div class="form-actions">
@@ -55,6 +58,12 @@
         </form>
 
         <input type="text" id="song-search" placeholder="Search songs...">
+        <select id="song-energy-filter">
+          <option value="">All Energy</option>
+          <option value="High">High</option>
+          <option value="Medium">Medium</option>
+          <option value="Low">Low</option>
+        </select>
 
         <div class="table-scroll">
           <table id="songs-table">
@@ -66,12 +75,44 @@
                 <th>BPM</th>
                 <th>Links</th>
                 <th>Tags</th>
+                <th id="songs-th-energy" class="sortable">Energy</th>
                 <th>Last Played</th>
                 <th></th>
               </tr>
             </thead>
             <tbody id="songs-tbody"></tbody>
           </table>
+        </div>
+
+        <h3 id="song-keys-section">Manage Song Keys</h3>
+        <label for="song-keys-select">Song:</label>
+        <select id="song-keys-select">
+          <option value="">Select a song</option>
+        </select>
+
+        <div id="song-keys-content" class="hidden">
+          <form id="song-key-form">
+            <input type="text" id="song-key-name" placeholder="Key (e.g. G)" required>
+            <input type="url" id="song-key-youtube" placeholder="YouTube link">
+            <input type="url" id="song-key-chart" placeholder="Chord chart link">
+            <label class="checkbox-label"><input type="checkbox" id="song-key-default"> Default</label>
+            <button type="submit">Add Key</button>
+            <p id="song-key-error" class="error"></p>
+          </form>
+
+          <div class="table-scroll">
+            <table id="song-keys-table">
+              <thead>
+                <tr>
+                  <th>Key</th>
+                  <th>Default</th>
+                  <th>Links</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="song-keys-tbody"></tbody>
+            </table>
+          </div>
         </div>
       </section>
 
@@ -183,7 +224,9 @@
           <h3>Songs</h3>
           <form id="oos-song-form">
             <select id="oos-song-select" required></select>
-            <input type="text" id="oos-key-override" placeholder="Key override (optional)">
+            <select id="oos-song-key-select">
+              <option value="">— Select a song first —</option>
+            </select>
             <input type="text" id="oos-song-notes" placeholder="Notes (optional)">
             <button type="submit">Add Song to Set</button>
             <p id="oos-song-caution" class="caution hidden"></p>
