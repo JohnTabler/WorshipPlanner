@@ -186,6 +186,7 @@
             <input type="text" id="oos-key-override" placeholder="Key override (optional)">
             <input type="text" id="oos-song-notes" placeholder="Notes (optional)">
             <button type="submit">Add Song to Set</button>
+            <p id="oos-song-caution" class="caution hidden"></p>
             <p id="oos-song-error" class="error"></p>
           </form>
 
@@ -206,25 +207,34 @@
           </div>
 
           <h3>Musician Assignments</h3>
-          <form id="oos-assignment-form">
-            <select id="oos-musician-select" required></select>
-            <input type="text" id="oos-instrument" placeholder="Role (e.g. Acoustic Guitar)" required>
-            <button type="submit">Add Assignment</button>
-            <p id="oos-assignment-error" class="error"></p>
-          </form>
-
-          <div class="table-scroll">
-            <table id="oos-assignments-table">
-              <thead>
-                <tr>
-                  <th>Musician</th>
-                  <th>Role</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody id="oos-assignments-tbody"></tbody>
-            </table>
+          <div id="oos-assignments-grid" class="assignment-grid">
+            <div class="assignment-row">
+              <label>Vocals</label>
+              <div id="oos-vocals-selects"></div>
+              <button type="button" id="oos-add-vocalist-btn" class="add-vocalist-btn">+ Add vocalist</button>
+            </div>
+            <div class="assignment-row">
+              <label>Rhythm Guitar</label>
+              <select class="oos-role-select" data-role="Rhythm Guitar"></select>
+            </div>
+            <div class="assignment-row">
+              <label>Electric Guitar</label>
+              <select class="oos-role-select" data-role="Electric Guitar"></select>
+            </div>
+            <div class="assignment-row">
+              <label>Bass</label>
+              <select class="oos-role-select" data-role="Bass"></select>
+            </div>
+            <div class="assignment-row">
+              <label>Keys</label>
+              <select class="oos-role-select" data-role="Keys"></select>
+            </div>
+            <div class="assignment-row">
+              <label>Other</label>
+              <select class="oos-role-select" data-role="Other"></select>
+            </div>
           </div>
+          <p id="oos-assignment-error" class="error"></p>
         </div>
       </section>
 
