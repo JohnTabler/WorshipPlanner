@@ -32,7 +32,6 @@ loginForm.addEventListener('submit', async (e) => {
 
   const email = document.getElementById('email').value;
   const password = document.getElementById('password').value;
-  console.log('Submitting email:', JSON.stringify(email), 'password length:', password.length);
 
   try {
     const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
