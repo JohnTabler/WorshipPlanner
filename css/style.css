@@ -13,6 +13,9 @@ body {
   align-items: center;
   justify-content: center;
 }
+#login-view.hidden {
+  display: none;
+}
 #login-form {
   background: white;
   padding: 2rem;
