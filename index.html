@@ -19,14 +19,21 @@
     </form>
   </div>
 
-  <!-- App view (placeholder shell — songs, musicians, calendar, etc. go here next) -->
+  <!-- App view -->
   <div id="app-view" class="view hidden">
     <header>
       <h1>Worship Planner</h1>
       <button id="logout-btn">Log Out</button>
     </header>
+    <nav id="main-nav">
+      <button class="nav-btn active" data-section="songs-section">Songs</button>
+      <button class="nav-btn" data-section="musicians-section">Musicians</button>
+      <button class="nav-btn" data-section="calendar-section">Calendar</button>
+      <button class="nav-btn" data-section="oos-section">Order of Service</button>
+      <button class="nav-btn" data-section="email-section">Email</button>
+    </nav>
     <main>
-      <section id="songs-section">
+      <section id="songs-section" class="app-section">
         <h2>Songs</h2>
 
         <form id="song-form">
@@ -65,6 +72,158 @@
           <tbody id="songs-tbody"></tbody>
         </table>
       </section>
+
+      <section id="musicians-section" class="app-section hidden">
+        <h2>Musicians</h2>
+
+        <form id="musician-form">
+          <input type="hidden" id="musician-id">
+          <input type="text" id="musician-name" placeholder="Name" required>
+          <input type="email" id="musician-email" placeholder="Email">
+          <input type="tel" id="musician-phone" placeholder="Phone">
+          <input type="text" id="musician-instruments" placeholder="Instruments (comma separated)">
+          <textarea id="musician-notes" placeholder="Skill notes"></textarea>
+          <div class="form-actions">
+            <button type="submit" id="musician-submit-btn">Add Musician</button>
+            <button type="button" id="musician-cancel-btn" class="hidden">Cancel</button>
+          </div>
+          <p id="musician-error" class="error"></p>
+        </form>
+
+        <table id="musicians-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Instruments</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="musicians-tbody"></tbody>
+        </table>
+
+        <h3>Unavailable Dates</h3>
+
+        <form id="unavailable-form">
+          <select id="unavailable-musician" required></select>
+          <input type="date" id="unavailable-date" required>
+          <input type="text" id="unavailable-reason" placeholder="Reason (optional)">
+          <button type="submit">Add Unavailable Date</button>
+          <p id="unavailable-error" class="error"></p>
+        </form>
+
+        <table id="unavailable-table">
+          <thead>
+            <tr>
+              <th>Musician</th>
+              <th>Date</th>
+              <th>Reason</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="unavailable-tbody"></tbody>
+        </table>
+      </section>
+
+      <section id="calendar-section" class="app-section hidden">
+        <h2>Calendar</h2>
+
+        <form id="service-form">
+          <input type="hidden" id="service-id">
+          <input type="date" id="service-date" required>
+          <input type="text" id="service-title" placeholder="Title (e.g. Easter Sunday)">
+          <select id="service-type">
+            <option value="regular">Regular</option>
+            <option value="special">Special</option>
+          </select>
+          <textarea id="service-notes" placeholder="Notes"></textarea>
+          <div class="form-actions">
+            <button type="submit" id="service-submit-btn">Add Service</button>
+            <button type="button" id="service-cancel-btn" class="hidden">Cancel</button>
+          </div>
+          <p id="service-error" class="error"></p>
+        </form>
+
+        <table id="services-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Title</th>
+              <th>Type</th>
+              <th>Notes</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="services-tbody"></tbody>
+        </table>
+      </section>
+
+      <section id="oos-section" class="app-section hidden">
+        <h2>Order of Service</h2>
+
+        <label for="oos-service-select">Service:</label>
+        <select id="oos-service-select">
+          <option value="">Select a service</option>
+        </select>
+
+        <div id="oos-content" class="hidden">
+          <h3>Songs</h3>
+          <form id="oos-song-form">
+            <select id="oos-song-select" required></select>
+            <input type="text" id="oos-key-override" placeholder="Key override (optional)">
+            <input type="text" id="oos-song-notes" placeholder="Notes (optional)">
+            <button type="submit">Add Song to Set</button>
+            <p id="oos-song-error" class="error"></p>
+          </form>
+
+          <table id="oos-songs-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Title</th>
+                <th>Key</th>
+                <th>BPM</th>
+                <th>Notes</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="oos-songs-tbody"></tbody>
+          </table>
+
+          <h3>Musician Assignments</h3>
+          <form id="oos-assignment-form">
+            <select id="oos-musician-select" required></select>
+            <input type="text" id="oos-instrument" placeholder="Role (e.g. Acoustic Guitar)" required>
+            <button type="submit">Add Assignment</button>
+            <p id="oos-assignment-error" class="error"></p>
+          </form>
+
+          <table id="oos-assignments-table">
+            <thead>
+              <tr>
+                <th>Musician</th>
+                <th>Role</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="oos-assignments-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="email-section" class="app-section hidden">
+        <h2>Email Generator</h2>
+
+        <label for="email-service-select">Service:</label>
+        <select id="email-service-select">
+          <option value="">Select a service</option>
+        </select>
+
+        <textarea id="email-output" rows="20" readonly></textarea>
+        <button id="email-copy-btn" type="button">Copy to Clipboard</button>
+        <p id="email-copy-status"></p>
+      </section>
     </main>
   </div>
 
@@ -72,5 +231,10 @@
   <script src="js/supabaseClient.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/songs.js"></script>
+  <script src="js/musicians.js"></script>
+  <script src="js/calendar.js"></script>
+  <script src="js/orderOfService.js"></script>
+  <script src="js/email.js"></script>
+  <script src="js/nav.js"></script>
 </body>
 </html>
