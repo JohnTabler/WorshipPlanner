@@ -57,4 +57,4 @@ logoutBtn.addEventListener('click', async () => {
   showLogin();
 });
 
-checkSession();
+document.addEventListener('DOMContentLoaded', checkSession);

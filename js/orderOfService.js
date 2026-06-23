@@ -2,6 +2,7 @@ const oosServiceSelect = document.getElementById('oos-service-select');
 const oosContent = document.getElementById('oos-content');
 
 const oosSongForm = document.getElementById('oos-song-form');
+const oosEnergyFilter = document.getElementById('oos-energy-filter');
 const oosSongSelect = document.getElementById('oos-song-select');
 const oosSongKeySelect = document.getElementById('oos-song-key-select');
 const oosSongNotesField = document.getElementById('oos-song-notes');
@@ -10,8 +11,6 @@ const oosSongError = document.getElementById('oos-song-error');
 const oosSongsTbody = document.getElementById('oos-songs-tbody');
 
 const oosAssignmentsGrid = document.getElementById('oos-assignments-grid');
-const oosVocalsContainer = document.getElementById('oos-vocals-selects');
-const oosAddVocalistBtn = document.getElementById('oos-add-vocalist-btn');
 const oosAssignmentError = document.getElementById('oos-assignment-error');
 
 let currentServiceId = '';
@@ -19,32 +18,29 @@ let currentServiceSongs = [];
 let currentAssignments = [];
 let previousServiceSongIds = new Set();
 let previousServiceLabel = '';
+let dragSrcIndex = -1;
 
-// Fixed single-select roles. Vocals is handled separately since it allows multiple people.
-const SINGLE_SELECT_ROLES = ['Rhythm Guitar', 'Electric Guitar', 'Bass', 'Keys', 'Other'];
+const ALL_ROLES = ['Vocals', 'Rhythm Guitar', 'Electric Guitar', 'Bass', 'Keys', 'Drums', 'Other'];
+// Exact instrument values stored for each named role; anything else belongs to "Other"
+const NAMED_ROLES = new Set(['Vocals', 'Rhythm Guitar', 'Electric Guitar', 'Bass', 'Keys', 'Drums']);
 
-// Keyword groups used to fuzzy-match a musician's freeform instrument tags to a role.
-// "Other" intentionally matches everyone, so nobody who's mistagged ever becomes
-// invisible to every dropdown - worst case they land in Other instead.
 const ROLE_KEYWORDS = {
   'Vocals': ['vocal', 'voice', 'sing'],
   'Rhythm Guitar': ['rhythm guitar', 'acoustic guitar', 'rhythm'],
   'Electric Guitar': ['electric guitar', 'lead guitar', 'electric'],
   'Bass': ['bass'],
-  'Keys': ['key', 'piano', 'keyboard']
+  'Keys': ['key', 'piano', 'keyboard'],
+  'Drums': ['drum', 'percussion', 'kit']
 };
 
 function musicianMatchesRole(musician, role) {
-  if (role === 'Other') return true; // catch-all - always available as a fallback
-
+  if (role === 'Other') return true;
   const tags = (musician.instruments || []).map((t) => t.toLowerCase());
   const keywords = ROLE_KEYWORDS[role] || [];
   if (tags.some((tag) => keywords.some((kw) => tag.includes(kw)))) return true;
-
   if (role === 'Rhythm Guitar' || role === 'Electric Guitar') {
     return tags.some((tag) => tag.includes('guitar') && !tag.includes('bass'));
   }
-
   return false;
 }
 
@@ -77,8 +73,13 @@ function populateServiceDropdown() {
 }
 
 function populateSongDropdownForOos() {
+  const energyFilter = oosEnergyFilter.value;
+  const filtered = energyFilter
+    ? allSongs.filter((s) => s.energy === energyFilter)
+    : allSongs;
+
   oosSongSelect.innerHTML = '<option value="">Select a song</option>' +
-    allSongs.map((s) => `<option value="${s.id}">${s.title}</option>`).join('');
+    filtered.map((s) => `<option value="${s.id}">${s.title}</option>`).join('');
 }
 
 // Kept as a no-op so musicians.js's conditional call to this stays harmless.
@@ -102,12 +103,20 @@ oosServiceSelect.addEventListener('change', async () => {
   await loadAssignments();
 });
 
+oosEnergyFilter.addEventListener('change', () => {
+  populateSongDropdownForOos();
+  oosSongSelect.value = '';
+  oosSongKeySelect.innerHTML = '<option value="">— Select a song first —</option>';
+  oosSongCaution.textContent = '';
+  oosSongCaution.classList.add('hidden');
+});
+
 async function loadPreviousServiceSongs() {
   previousServiceSongIds = new Set();
   previousServiceLabel = '';
 
   const currentIndex = allServices.findIndex((s) => s.id === currentServiceId);
-  if (currentIndex <= 0) return; // no earlier service on record
+  if (currentIndex <= 0) return;
 
   const previousService = allServices[currentIndex - 1];
   previousServiceLabel = previousService.title
@@ -127,7 +136,6 @@ async function loadPreviousServiceSongs() {
   previousServiceSongIds = new Set(data.map((r) => r.song_id));
 }
 
-// Populates the key dropdown for whichever song is selected, defaulting to that song's marked default key
 async function populateKeySelectForSong(songId) {
   if (!songId) {
     oosSongKeySelect.innerHTML = '<option value="">— Select a song first —</option>';
@@ -188,11 +196,8 @@ async function loadServiceSongs() {
   renderServiceSongs();
 }
 
-// Self-heals position numbering on every load - closes gaps left by deletes
-// and splits any duplicate position values (e.g. from a fast double-click on Add).
 async function renumberServiceSongsIfNeeded() {
   const fixes = [];
-
   currentServiceSongs.forEach((row, index) => {
     const correctPosition = index + 1;
     if (row.position !== correctPosition) {
@@ -200,7 +205,6 @@ async function renumberServiceSongsIfNeeded() {
       row.position = correctPosition;
     }
   });
-
   for (const fix of fixes) {
     await supabaseClient.from('service_songs').update({ position: fix.position }).eq('id', fix.id);
   }
@@ -214,20 +218,69 @@ function renderServiceSongs() {
     const keyLabel = row.song_keys ? row.song_keys.song_key : '';
     const flagged = previousServiceSongIds.has(row.song_id);
     const tr = document.createElement('tr');
+    tr.draggable = true;
+
     tr.innerHTML = `
+      <td class="drag-handle" title="Drag to reorder">⠿</td>
       <td>${row.position}</td>
       <td>${flagged ? '⚠️ ' : ''}${song.title || ''}</td>
       <td>${keyLabel}</td>
       <td>${song.bpm || ''}</td>
       <td>${row.notes || ''}</td>
       <td>
-        <button class="move-up-btn" data-id="${row.id}" ${index === 0 ? 'disabled' : ''}>Up</button>
-        <button class="move-down-btn" data-id="${row.id}" ${index === currentServiceSongs.length - 1 ? 'disabled' : ''}>Down</button>
         <button class="remove-song-btn" data-id="${row.id}">Remove</button>
       </td>
     `;
+
+    tr.addEventListener('dragstart', (e) => {
+      dragSrcIndex = index;
+      e.dataTransfer.effectAllowed = 'move';
+      requestAnimationFrame(() => tr.classList.add('dragging'));
+    });
+
+    tr.addEventListener('dragend', () => {
+      tr.classList.remove('dragging');
+      oosSongsTbody.querySelectorAll('tr').forEach((r) => r.classList.remove('drag-over'));
+    });
+
+    tr.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+    });
+
+    tr.addEventListener('dragenter', (e) => {
+      e.preventDefault();
+      if (index === dragSrcIndex) return;
+      oosSongsTbody.querySelectorAll('tr').forEach((r) => r.classList.remove('drag-over'));
+      tr.classList.add('drag-over');
+    });
+
+    tr.addEventListener('dragleave', (e) => {
+      if (!tr.contains(e.relatedTarget)) tr.classList.remove('drag-over');
+    });
+
+    tr.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      const dropIndex = index;
+      if (dragSrcIndex === -1 || dragSrcIndex === dropIndex) return;
+
+      const moved = currentServiceSongs.splice(dragSrcIndex, 1)[0];
+      currentServiceSongs.splice(dropIndex, 0, moved);
+      dragSrcIndex = -1;
+
+      await savePositions();
+    });
+
     oosSongsTbody.appendChild(tr);
   });
+}
+
+async function savePositions() {
+  for (let i = 0; i < currentServiceSongs.length; i++) {
+    currentServiceSongs[i].position = i + 1;
+    await supabaseClient.from('service_songs').update({ position: i + 1 }).eq('id', currentServiceSongs[i].id);
+  }
+  renderServiceSongs();
 }
 
 oosSongForm.addEventListener('submit', async (e) => {
@@ -262,42 +315,22 @@ oosSongForm.addEventListener('submit', async (e) => {
   loadServiceSongs();
 });
 
-async function swapPositions(rowA, rowB) {
-  await supabaseClient.from('service_songs').update({ position: rowB.position }).eq('id', rowA.id);
-  await supabaseClient.from('service_songs').update({ position: rowA.position }).eq('id', rowB.id);
-  loadServiceSongs();
-}
-
 oosSongsTbody.addEventListener('click', async (e) => {
   const id = e.target.dataset.id;
-  if (!id) return;
+  if (!id || !e.target.classList.contains('remove-song-btn')) return;
 
-  const row = currentServiceSongs.find((r) => r.id === id);
-  if (!row) return;
-  const index = currentServiceSongs.indexOf(row);
+  const confirmed = confirm('Remove this song from the set?');
+  if (!confirmed) return;
 
-  if (e.target.classList.contains('move-up-btn') && index > 0) {
-    await swapPositions(row, currentServiceSongs[index - 1]);
+  const { error } = await supabaseClient.from('service_songs').delete().eq('id', id);
+  if (error) {
+    alert('Could not remove: ' + error.message);
+    return;
   }
-
-  if (e.target.classList.contains('move-down-btn') && index < currentServiceSongs.length - 1) {
-    await swapPositions(row, currentServiceSongs[index + 1]);
-  }
-
-  if (e.target.classList.contains('remove-song-btn')) {
-    const confirmed = confirm('Remove this song from the set?');
-    if (!confirmed) return;
-
-    const { error } = await supabaseClient.from('service_songs').delete().eq('id', id);
-    if (error) {
-      alert('Could not remove: ' + error.message);
-      return;
-    }
-    loadServiceSongs();
-  }
+  loadServiceSongs();
 });
 
-// ---- Musician assignments (fixed dropdowns, filtered by instrument) ----
+// ---- Musician assignments ----
 
 async function loadAssignments() {
   const { data, error } = await supabaseClient
@@ -311,83 +344,120 @@ async function loadAssignments() {
   }
 
   currentAssignments = data;
-  renderRoleSelects();
-  renderVocalsSelects();
+  renderAllRoleSlots();
 }
 
-function renderRoleSelects() {
-  SINGLE_SELECT_ROLES.forEach((role) => {
-    const select = oosAssignmentsGrid.querySelector(`.oos-role-select[data-role="${role}"]`);
-    if (!select) return;
+function getAssignmentsForRole(role) {
+  if (role === 'Other') {
+    return currentAssignments.filter((a) => !NAMED_ROLES.has(a.instrument));
+  }
+  return currentAssignments.filter((a) => a.instrument === role);
+}
 
-    const assignment = currentAssignments.find((a) => a.instrument === role);
-    select.dataset.assignmentId = assignment ? assignment.id : '';
-    select.innerHTML = buildRoleOptionsHtml(role, assignment ? assignment.musician_id : '');
+function renderAllRoleSlots() {
+  ALL_ROLES.forEach((role) => {
+    const row = oosAssignmentsGrid.querySelector(`.assignment-row[data-role="${role}"]`);
+    if (!row) return;
+    const container = row.querySelector('.role-slots');
+    container.innerHTML = '';
+    const assignments = getAssignmentsForRole(role);
+    const slots = assignments.length > 0 ? assignments : [null];
+    slots.forEach((assignment) => container.appendChild(buildRoleSlot(role, assignment)));
   });
 }
 
-function renderVocalsSelects() {
-  oosVocalsContainer.innerHTML = '';
-
-  const vocalsAssignments = currentAssignments.filter((a) => a.instrument === 'Vocals');
-  const rows = vocalsAssignments.length > 0 ? vocalsAssignments : [null];
-
-  rows.forEach((assignment) => {
-    oosVocalsContainer.appendChild(buildVocalsSelectRow(assignment));
-  });
-}
-
-function buildVocalsSelectRow(assignment) {
+function buildRoleSlot(role, assignment) {
   const wrapper = document.createElement('div');
-  wrapper.className = 'vocals-select-row';
+  wrapper.className = 'role-slot-row';
 
   const select = document.createElement('select');
-  select.className = 'vocals-select';
   select.dataset.assignmentId = assignment ? assignment.id : '';
-  select.innerHTML = buildRoleOptionsHtml('Vocals', assignment ? assignment.musician_id : '');
+  select.innerHTML = buildRoleOptionsHtml(role, assignment ? assignment.musician_id : '');
+
+  wrapper.appendChild(select);
+
+  if (role === 'Other') {
+    const noteInput = document.createElement('input');
+    noteInput.type = 'text';
+    noteInput.className = 'role-note-input';
+    noteInput.placeholder = 'Instrument (e.g. Drums)';
+    // Show stored value unless it's the plain fallback "Other"
+    if (assignment && assignment.instrument !== 'Other') {
+      noteInput.value = assignment.instrument;
+    }
+    wrapper.appendChild(noteInput);
+
+    select.addEventListener('change', () => handleRoleSelectChange(select, noteInput, role));
+    noteInput.addEventListener('change', () => handleRoleNoteChange(select, noteInput));
+  } else {
+    select.addEventListener('change', () => handleRoleSelectChange(select, null, role));
+  }
 
   const removeBtn = document.createElement('button');
   removeBtn.type = 'button';
-  removeBtn.className = 'remove-vocalist-btn';
+  removeBtn.className = 'remove-role-btn';
   removeBtn.textContent = '×';
-
-  select.addEventListener('change', () => handleVocalsSelectChange(select));
-  removeBtn.addEventListener('click', () => handleRemoveVocalistRow(wrapper, select));
-
-  wrapper.appendChild(select);
+  removeBtn.addEventListener('click', () => handleRemoveRoleSlot(wrapper, select));
   wrapper.appendChild(removeBtn);
+
   return wrapper;
 }
 
-async function handleVocalsSelectChange(select) {
+function instrumentForRole(role, noteInput) {
+  if (role !== 'Other') return role;
+  return (noteInput && noteInput.value.trim()) ? noteInput.value.trim() : 'Other';
+}
+
+async function handleRoleSelectChange(select, noteInput, role) {
   oosAssignmentError.textContent = '';
   const assignmentId = select.dataset.assignmentId;
   const musicianId = select.value;
+  const instrument = instrumentForRole(role, noteInput);
 
   let error;
   if (assignmentId) {
     if (!musicianId) {
       ({ error } = await supabaseClient.from('assignments').delete().eq('id', assignmentId));
+      if (!error) {
+        select.dataset.assignmentId = '';
+        loadAssignments();
+      }
     } else {
-      ({ error } = await supabaseClient.from('assignments').update({ musician_id: musicianId }).eq('id', assignmentId));
+      ({ error } = await supabaseClient.from('assignments')
+        .update({ musician_id: musicianId, instrument })
+        .eq('id', assignmentId));
     }
   } else if (musicianId) {
-    ({ error } = await supabaseClient.from('assignments').insert({
+    const { data, error: err } = await supabaseClient.from('assignments').insert({
       service_id: currentServiceId,
       musician_id: musicianId,
-      instrument: 'Vocals'
-    }));
+      instrument
+    }).select().single();
+    error = err;
+    if (!error && data) select.dataset.assignmentId = data.id;
   }
 
   if (error) {
     oosAssignmentError.textContent = 'Could not update assignment. ' + error.message;
-    return;
   }
-
-  loadAssignments();
 }
 
-async function handleRemoveVocalistRow(wrapper, select) {
+async function handleRoleNoteChange(select, noteInput) {
+  oosAssignmentError.textContent = '';
+  const assignmentId = select.dataset.assignmentId;
+  if (!assignmentId) return; // no assignment yet; note will be included when musician is chosen
+
+  const instrument = noteInput.value.trim() || 'Other';
+  const { error } = await supabaseClient.from('assignments')
+    .update({ instrument })
+    .eq('id', assignmentId);
+
+  if (error) {
+    oosAssignmentError.textContent = 'Could not update instrument note. ' + error.message;
+  }
+}
+
+async function handleRemoveRoleSlot(wrapper, select) {
   const assignmentId = select.dataset.assignmentId;
   if (!assignmentId) {
     wrapper.remove();
@@ -402,38 +472,10 @@ async function handleRemoveVocalistRow(wrapper, select) {
   loadAssignments();
 }
 
-oosAddVocalistBtn.addEventListener('click', () => {
-  oosVocalsContainer.appendChild(buildVocalsSelectRow(null));
-});
-
-oosAssignmentsGrid.addEventListener('change', async (e) => {
-  if (!e.target.classList.contains('oos-role-select')) return;
-
-  oosAssignmentError.textContent = '';
-  const select = e.target;
-  const role = select.dataset.role;
-  const assignmentId = select.dataset.assignmentId;
-  const musicianId = select.value;
-
-  let error;
-  if (assignmentId) {
-    if (!musicianId) {
-      ({ error } = await supabaseClient.from('assignments').delete().eq('id', assignmentId));
-    } else {
-      ({ error } = await supabaseClient.from('assignments').update({ musician_id: musicianId }).eq('id', assignmentId));
-    }
-  } else if (musicianId) {
-    ({ error } = await supabaseClient.from('assignments').insert({
-      service_id: currentServiceId,
-      musician_id: musicianId,
-      instrument: role
-    }));
-  }
-
-  if (error) {
-    oosAssignmentError.textContent = 'Could not update assignment. ' + error.message;
-    return;
-  }
-
-  loadAssignments();
+oosAssignmentsGrid.addEventListener('click', (e) => {
+  const addBtn = e.target.closest('.add-role-btn');
+  if (!addBtn) return;
+  const role = addBtn.dataset.role;
+  const container = oosAssignmentsGrid.querySelector(`.assignment-row[data-role="${role}"] .role-slots`);
+  if (container) container.appendChild(buildRoleSlot(role, null));
 });

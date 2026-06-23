@@ -8,6 +8,7 @@ const musicianNotesField = document.getElementById('musician-notes');
 const musicianSubmitBtn = document.getElementById('musician-submit-btn');
 const musicianCancelBtn = document.getElementById('musician-cancel-btn');
 const musicianError = document.getElementById('musician-error');
+const addMusicianBtn = document.getElementById('add-musician-btn');
 const musiciansTbody = document.getElementById('musicians-tbody');
 const musicianSearch = document.getElementById('musician-search');
 
@@ -26,7 +27,14 @@ function resetMusicianForm() {
   musicianSubmitBtn.textContent = 'Add Musician';
   musicianCancelBtn.classList.add('hidden');
   musicianError.textContent = '';
+  musicianForm.classList.add('hidden');
 }
+
+addMusicianBtn.addEventListener('click', () => {
+  resetMusicianForm();
+  musicianForm.classList.remove('hidden');
+  musicianForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+});
 
 async function loadMusicians() {
   const { data, error } = await supabaseClient
@@ -134,6 +142,8 @@ musiciansTbody.addEventListener('click', async (e) => {
 
     musicianSubmitBtn.textContent = 'Update Musician';
     musicianCancelBtn.classList.remove('hidden');
+    musicianForm.classList.remove('hidden');
+    musicianForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
   if (e.target.classList.contains('delete-musician-btn')) {

@@ -1,423 +1,850 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Outfit:wght@300;400;500;600&display=swap');
+
+/* ─────────────────────────────────────────────────────────────── */
+/* Design tokens                                                    */
+/* ─────────────────────────────────────────────────────────────── */
+:root {
+  --bg:              #F8F5F0;
+  --surface:         #FFFFFF;
+  --surface-2:       #F4F0EA;
+  --border:          #E5DDD4;
+  --border-strong:   #C8BAB0;
+
+  --text-primary:    #1A130E;
+  --text-secondary:  #5A4D44;
+  --text-muted:      #9A8B82;
+
+  --accent:          #BF6E2E;
+  --accent-hover:    #A35720;
+  --accent-light:    #F5E8D5;
+  --accent-mid:      #E8C99A;
+
+  --dark-btn:        #241B15;
+  --dark-btn-hover:  #352920;
+  --dark-btn-text:   #F5EDE3;
+
+  --danger:          #B91C1C;
+  --danger-light:    #FEE2E2;
+  --success:         #166534;
+  --success-light:   #DCFCE7;
+  --caution-text:    #92400E;
+  --caution-bg:      #FEF3C7;
+
+  --shadow-sm: 0 1px 3px rgba(26, 19, 14, 0.07), 0 1px 2px rgba(26, 19, 14, 0.04);
+  --shadow-md: 0 4px 16px rgba(26, 19, 14, 0.09), 0 2px 4px rgba(26, 19, 14, 0.05);
+
+  --r:    8px;
+  --r-sm: 5px;
+
+  --font-display: 'Cormorant', Georgia, serif;
+  --font-ui:      'Outfit', system-ui, sans-serif;
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ─────────────────────────────────────────────────────────────── */
+/* Base                                                             */
+/* ─────────────────────────────────────────────────────────────── */
 * { box-sizing: border-box; }
+
 body {
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-ui);
+  font-size: 0.9375rem;
+  font-weight: 400;
+  line-height: 1.55;
   margin: 0;
-  background: #f5f5f4;
-  color: #1c1917;
+  background: var(--bg);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
-.hidden { display: none; }
 
-button {
+.hidden { display: none !important; }
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ─────────────────────────────────────────────────────────────── */
+/* Shared form controls                                             */
+/* ─────────────────────────────────────────────────────────────── */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="tel"],
+input[type="url"],
+input[type="date"],
+input[type="number"],
+select,
+textarea {
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  font-weight: 400;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-sm);
+  color: var(--text-primary);
+  padding: 0.55rem 0.75rem;
+  transition: border-color 150ms var(--ease), box-shadow 150ms var(--ease);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(191, 110, 46, 0.13);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+  font-weight: 300;
+}
+
+/* custom select arrow */
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%239A8B82'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2.25rem;
   cursor: pointer;
-  transition: filter 0.15s ease, transform 0.05s ease, background-color 0.15s ease;
-}
-button:hover {
-  filter: brightness(1.08);
-}
-button:active {
-  transform: scale(0.97);
 }
 
+/* ─────────────────────────────────────────────────────────────── */
+/* Buttons                                                          */
+/* ─────────────────────────────────────────────────────────────── */
+button {
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  border: none;
+  border-radius: var(--r-sm);
+  transition: background-color 150ms var(--ease), border-color 150ms var(--ease),
+              transform 80ms var(--ease), color 150ms var(--ease);
+}
+button:active { transform: scale(0.97); }
+
+/* Primary (dark) — used for submit, copy, etc. */
+button[type="submit"],
+#email-copy-btn {
+  background: var(--dark-btn);
+  color: var(--dark-btn-text);
+  padding: 0.55rem 1.25rem;
+  letter-spacing: 0.015em;
+}
+button[type="submit"]:hover,
+#email-copy-btn:hover {
+  background: var(--dark-btn-hover);
+}
+
+/* Cancel / secondary buttons */
+#song-cancel-btn,
+#musician-cancel-btn,
+#service-cancel-btn {
+  background: var(--surface-2);
+  border: 1.5px solid var(--border);
+  color: var(--text-secondary);
+  padding: 0.55rem 1.1rem;
+}
+#song-cancel-btn:hover,
+#musician-cancel-btn:hover,
+#service-cancel-btn:hover {
+  border-color: var(--border-strong);
+  background: var(--border);
+}
+
+/* Logout */
+#logout-btn {
+  background: transparent;
+  border: 1.5px solid var(--border-strong);
+  color: var(--text-secondary);
+  padding: 0.4rem 1rem;
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+  border-radius: var(--r-sm);
+}
+#logout-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-light);
+}
+
+/* ─────────────────────────────────────────────────────────────── */
+/* Status / feedback text                                           */
+/* ─────────────────────────────────────────────────────────────── */
+.error {
+  color: var(--danger);
+  font-size: 0.82rem;
+  min-height: 1em;
+}
+.caution {
+  color: var(--caution-text);
+  background: var(--caution-bg);
+  border-left: 3px solid var(--caution-text);
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--r-sm);
+  font-size: 0.84rem;
+  margin-top: 0.25rem;
+}
+#email-copy-status {
+  color: var(--success);
+  font-size: 0.84rem;
+  margin-top: 0.35rem;
+  display: block;
+}
+
+/* ─────────────────────────────────────────────────────────────── */
+/* Login                                                            */
+/* ─────────────────────────────────────────────────────────────── */
 #login-view {
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
+  background:
+    radial-gradient(ellipse 90% 55% at 50% 0%, rgba(191,110,46,0.09) 0%, transparent 65%),
+    var(--bg);
 }
-#login-view.hidden {
-  display: none;
-}
+#login-view.hidden { display: none !important; }
+
 #login-form {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-  width: 280px;
+  background: var(--surface);
+  padding: 2.75rem 2.25rem 2.25rem;
+  border-radius: 12px;
+  box-shadow: var(--shadow-md), 0 0 0 1px var(--border);
+  width: 330px;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.85rem;
+  animation: fadeUp 0.4s var(--ease) both;
 }
-#login-form input {
-  padding: 0.6rem;
-  border: 1px solid #d6d3d1;
-  border-radius: 4px;
-}
-#login-form button {
-  padding: 0.6rem;
-  background: #44403c;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.error { color: #b91c1c; font-size: 0.85rem; min-height: 1em; }
 
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+#login-form h1 {
+  font-family: var(--font-display);
+  font-size: 2.6rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  line-height: 1.05;
+  margin: 0 0 0.25rem;
+  text-align: center;
+}
+#login-form h1::after {
+  content: '';
+  display: block;
+  width: 36px;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 2px;
+  margin: 0.65rem auto 0.5rem;
+}
+
+#login-form input {
+  width: 100%;
+}
+#login-form button[type="submit"] {
+  width: 100%;
+  padding: 0.7rem;
+  font-size: 0.875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-top: 0.15rem;
+}
+
+/* ─────────────────────────────────────────────────────────────── */
+/* Header                                                           */
+/* ─────────────────────────────────────────────────────────────── */
 header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 1.5rem;
-  background: white;
-  border-bottom: 1px solid #e7e5e4;
-}
-main {
-  padding: 1.5rem;
+  padding: 0 2rem;
+  height: 58px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
-#songs-section {
-  max-width: 900px;
+header h1 {
+  font-family: var(--font-display);
+  font-size: 1.65rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+header h1::before {
+  content: '♪';
+  color: var(--accent);
+  font-style: normal;
+  font-size: 1.2rem;
+}
+
+/* ─────────────────────────────────────────────────────────────── */
+/* Navigation                                                       */
+/* ─────────────────────────────────────────────────────────────── */
+#main-nav {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.65rem 1.75rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.nav-btn {
+  padding: 0.45rem 1.1rem;
+  background: transparent;
+  border: 1.5px solid transparent;
+  border-radius: 50px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.85rem;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: all 150ms var(--ease);
+}
+.nav-btn:hover {
+  background: var(--accent-light);
+  color: var(--accent);
+}
+.nav-btn.active {
+  background: var(--dark-btn);
+  color: var(--dark-btn-text);
+  border-color: transparent;
+}
+.nav-btn.active:hover {
+  background: var(--dark-btn-hover);
+}
+
+/* ─────────────────────────────────────────────────────────────── */
+/* Main content area                                                */
+/* ─────────────────────────────────────────────────────────────── */
+main {
+  padding: 2rem 2rem;
+  max-width: 980px;
   margin: 0 auto;
 }
 
-#song-form {
-  background: white;
-  padding: 1.25rem;
-  border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+/* section headings */
+.app-section h2 {
+  font-family: var(--font-display);
+  font-size: 2.1rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  color: var(--text-primary);
+  margin: 0 0 1.4rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--border);
+  line-height: 1.1;
+}
+
+/* header row: h2 + add button side by side */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.4rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--border);
+}
+.section-header h2 {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+.add-record-btn {
+  background: var(--dark-btn);
+  color: var(--dark-btn-text);
+  padding: 0.5rem 1.1rem;
+  font-size: 0.85rem;
+  letter-spacing: 0.01em;
+  flex-shrink: 0;
+}
+.add-record-btn:hover { background: var(--dark-btn-hover); }
+.app-section h3 {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  color: var(--text-secondary);
+  margin: 2rem 0 0.85rem;
+  line-height: 1.2;
+}
+#songs-section {
+  max-width: none;
+}
+
+/* ─────────────────────────────────────────────────────────────── */
+/* Forms (generic)                                                  */
+/* ─────────────────────────────────────────────────────────────── */
+main form {
+  background: var(--surface);
+  padding: 1.5rem;
+  border-radius: var(--r);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+  gap: 0.6rem;
+  margin-bottom: 1.25rem;
 }
-#song-form input,
-#song-form textarea {
-  padding: 0.5rem;
-  border: 1px solid #d6d3d1;
-  border-radius: 4px;
-  flex: 1 1 150px;
+main form input,
+main form select,
+main form textarea {
+  flex: 1 1 160px;
 }
-#song-form textarea {
+main form textarea {
   flex: 1 1 100%;
   resize: vertical;
+  min-height: 80px;
 }
 .form-actions {
   flex: 1 1 100%;
   display: flex;
   gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
 }
-#song-form button {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-#song-submit-btn { background: #44403c; color: white; }
-#song-cancel-btn { background: #e7e5e4; }
 
+/* ─────────────────────────────────────────────────────────────── */
+/* Search inputs                                                    */
+/* ─────────────────────────────────────────────────────────────── */
 #song-search,
 #musician-search,
 #service-search {
   width: 100%;
-  padding: 0.5rem;
+  padding: 0.6rem 0.75rem 0.6rem 2.35rem;
   margin-bottom: 0.75rem;
-  border: 1px solid #d6d3d1;
-  border-radius: 4px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239A8B82' stroke-width='2.5' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 0.75rem center;
 }
 
-#songs-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-}
-#songs-table th, #songs-table td {
-  text-align: left;
-  padding: 0.5rem;
-  border-bottom: 1px solid #e7e5e4;
-  font-size: 0.9rem;
-}
-#songs-table button {
-  padding: 0.25rem 0.5rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-right: 0.25rem;
-}
-.edit-btn { background: #d6d3d1; }
-.delete-btn { background: #fecaca; }
-
-/* Nav bar */
-#main-nav {
-  display: flex;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  background: white;
-  border-bottom: 1px solid #e7e5e4;
-  flex-wrap: wrap;
-}
-.nav-btn {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
-  background: transparent;
-  cursor: pointer;
-  font-weight: 500;
-}
-.nav-btn:hover {
-  background: #e7e5e4;
-}
-.nav-btn.active {
-  background: #44403c;
-  color: white;
-}
-.nav-btn.active:hover {
-  background: #57534e;
+#song-energy-filter {
+  padding: 0.55rem 2.25rem 0.55rem 0.75rem;
+  margin-bottom: 0.85rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-sm);
+  background-color: var(--surface);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%239A8B82'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
 }
 
-/* Generic styles for forms/tables added in Musicians, Calendar, Order of Service, Email */
-main form {
-  background: white;
-  padding: 1.25rem;
-  border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+/* ─────────────────────────────────────────────────────────────── */
+/* Tables                                                           */
+/* ─────────────────────────────────────────────────────────────── */
+.table-scroll {
+  overflow-x: auto;
+  margin-bottom: 1.5rem;
+  border-radius: var(--r);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
 }
-main form input,
-main form select,
-main form textarea {
-  padding: 0.5rem;
-  border: 1px solid #d6d3d1;
-  border-radius: 4px;
-  flex: 1 1 150px;
-}
-main form textarea {
-  flex: 1 1 100%;
-  resize: vertical;
-}
-main form button[type="submit"] {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  background: #44403c;
-  color: white;
-}
+.table-scroll table { margin-bottom: 0; }
 
 main table {
   width: 100%;
   border-collapse: collapse;
-  background: white;
-  margin-bottom: 1.5rem;
+  background: var(--surface);
 }
-main table th, main table td {
+main table thead tr {
+  background: var(--surface-2);
+  border-bottom: 1.5px solid var(--border);
+}
+main table th {
   text-align: left;
-  padding: 0.5rem;
-  border-bottom: 1px solid #e7e5e4;
-  font-size: 0.9rem;
+  padding: 0.6rem 0.9rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  white-space: nowrap;
 }
+main table td {
+  text-align: left;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.875rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+main table tbody tr:last-child td { border-bottom: none; }
+main table tbody tr:hover td { background: #FDFAF7; }
+
+/* Table action buttons */
 main table button {
+  padding: 0.3rem 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  margin-right: 0.3rem;
+  border-radius: var(--r-sm);
+  border: 1.5px solid transparent;
+  line-height: 1.4;
+}
+
+.edit-btn,
+.edit-musician-btn,
+.edit-service-btn {
+  background: var(--accent-light);
+  color: var(--accent-hover);
+  border-color: rgba(191, 110, 46, 0.2) !important;
+}
+.edit-btn:hover,
+.edit-musician-btn:hover,
+.edit-service-btn:hover {
+  background: var(--accent-mid);
+  border-color: rgba(191, 110, 46, 0.4) !important;
+}
+
+.delete-btn,
+.delete-musician-btn,
+.delete-service-btn,
+.delete-unavailable-btn {
+  background: var(--danger-light);
+  color: var(--danger);
+  border-color: rgba(185, 28, 28, 0.15) !important;
+}
+.delete-btn:hover,
+.delete-musician-btn:hover,
+.delete-service-btn:hover,
+.delete-unavailable-btn:hover {
+  background: #FCC8C8;
+  border-color: rgba(185, 28, 28, 0.3) !important;
+}
+
+.manage-keys-btn {
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  border-color: var(--border) !important;
+}
+.manage-keys-btn:hover {
+  border-color: var(--border-strong) !important;
+  color: var(--text-primary);
+}
+
+.make-default-key-btn {
+  background: var(--accent-light);
+  color: var(--accent-hover);
+  border-color: rgba(191, 110, 46, 0.2) !important;
+}
+.make-default-key-btn:hover {
+  background: var(--accent-mid);
+}
+
+.remove-key-btn {
+  background: var(--danger-light);
+  color: var(--danger);
+  border-color: rgba(185, 28, 28, 0.15) !important;
+}
+
+/* OOS song reorder / remove */
+.move-up-btn,
+.move-down-btn {
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  border-color: var(--border) !important;
   padding: 0.25rem 0.5rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-right: 0.25rem;
-  background: #d6d3d1;
 }
+.move-up-btn:hover,
+.move-down-btn:hover {
+  background: var(--border);
+}
+.remove-song-btn {
+  background: var(--danger-light);
+  color: var(--danger);
+  border-color: rgba(185, 28, 28, 0.15) !important;
+}
+.remove-song-btn:hover { background: #FCC8C8; }
 
-/* Standalone selects in Order of Service / Email (outside a <form>) */
+/* sortable column */
+.sortable { cursor: pointer; user-select: none; }
+.sortable:hover { color: var(--accent); }
+
+/* ─────────────────────────────────────────────────────────────── */
+/* Standalone selects (outside forms)                              */
+/* ─────────────────────────────────────────────────────────────── */
 #oos-service-select,
-#email-service-select {
-  padding: 0.5rem;
-  border: 1px solid #d6d3d1;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-  min-width: 250px;
-}
-
-/* Email Generator output box */
-#email-output {
-  width: 100%;
-  min-height: 400px;
-  font-family: monospace;
-  padding: 1rem;
-  border: 1px solid #d6d3d1;
-  border-radius: 4px;
-  margin-bottom: 0.75rem;
-}
-#email-copy-btn {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
+#email-service-select,
+#song-keys-select,
+#oos-song-key-select {
+  padding: 0.55rem 2.25rem 0.55rem 0.75rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-sm);
+  margin-bottom: 1.25rem;
+  min-width: 260px;
+  background-color: var(--surface);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%239A8B82'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
   cursor: pointer;
-  background: #44403c;
-  color: white;
-}
-#email-copy-status {
-  color: #166534;
-  font-size: 0.85rem;
 }
 
-/* Lets wide tables scroll horizontally instead of breaking the layout on phones */
-.table-scroll {
-  overflow-x: auto;
-  margin-bottom: 1.5rem;
-}
-.table-scroll table {
+/* OOS key select is inside a form, override the standalone large min-width */
+#oos-song-key-select {
+  min-width: 0;
+  flex: 1 1 150px;
   margin-bottom: 0;
 }
 
-/* Mobile adjustments */
-@media (max-width: 640px) {
-  header {
-    padding: 0.75rem 1rem;
-  }
-  header h1 {
-    font-size: 1.1rem;
-  }
-  #main-nav {
-    padding: 0.5rem 0.75rem;
-    gap: 0.25rem;
-  }
-  .nav-btn {
-    padding: 0.4rem 0.7rem;
-    font-size: 0.85rem;
-  }
-  main {
-    padding: 0.75rem;
-  }
-  #song-form input,
-  #song-form textarea,
-  main form input,
-  main form select,
-  main form textarea {
-    flex: 1 1 100%;
-  }
+/* Section labels */
+main > section > label,
+#oos-content > label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  margin-bottom: 0.45rem;
 }
 
-/* Repeat-song caution flag (Order of Service) */
-.caution {
-  color: #92400e;
-  background: #fef3c7;
-  padding: 0.5rem;
-  border-radius: 4px;
-  font-size: 0.85rem;
-  margin-top: 0.25rem;
+/* ─────────────────────────────────────────────────────────────── */
+/* Email section                                                    */
+/* ─────────────────────────────────────────────────────────────── */
+#email-output {
+  width: 100%;
+  min-height: 380px;
+  font-family: 'Courier New', 'Lucida Console', monospace;
+  font-size: 0.82rem;
+  line-height: 1.75;
+  padding: 1.25rem 1.5rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--r);
+  background: var(--surface);
+  color: var(--text-primary);
+  margin-bottom: 0.85rem;
+  resize: vertical;
+  box-shadow: var(--shadow-sm);
+}
+#email-copy-btn {
+  padding: 0.55rem 1.4rem;
 }
 
-/* Musician assignment dropdowns (Order of Service) */
+/* ─────────────────────────────────────────────────────────────── */
+/* Musician assignment grid (Order of Service)                     */
+/* ─────────────────────────────────────────────────────────────── */
 .assignment-grid {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
-  background: white;
-  padding: 1.25rem;
-  border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-  margin-bottom: 0.75rem;
+  background: var(--surface);
+  padding: 1.5rem;
+  border-radius: var(--r);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  margin-bottom: 0.85rem;
 }
 .assignment-row {
-  flex: 1 1 200px;
+  flex: 1 1 185px;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.4rem;
 }
-.assignment-row label {
-  font-weight: 500;
-  font-size: 0.9rem;
+.assignment-row > label {
+  font-size: 0.72rem !important;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  margin-bottom: 0 !important;
 }
-.assignment-row select,
-.vocals-select-row select {
-  padding: 0.5rem;
-  border: 1px solid #d6d3d1;
-  border-radius: 4px;
+.assignment-row select {
+  padding: 0.5rem 2rem 0.5rem 0.65rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-sm);
+  background-color: var(--surface);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%239A8B82'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.6rem center;
+  font-size: 0.85rem;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
 }
-.vocals-select-row {
+
+.role-slot-row {
   display: flex;
   gap: 0.35rem;
   margin-bottom: 0.35rem;
+  align-items: center;
 }
-.vocals-select-row select {
+.role-slot-row select {
   flex: 1;
-}
-.remove-vocalist-btn {
-  border: none;
-  background: #fecaca;
-  border-radius: 4px;
-  padding: 0 0.6rem;
-  cursor: pointer;
-}
-.add-vocalist-btn {
-  align-self: flex-start;
-  border: none;
-  background: #d6d3d1;
-  border-radius: 4px;
-  padding: 0.35rem 0.7rem;
-  cursor: pointer;
+  min-width: 0;
+  padding: 0.5rem 2rem 0.5rem 0.65rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-sm);
+  background-color: var(--surface);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%239A8B82'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.6rem center;
   font-size: 0.85rem;
+  -webkit-appearance: none;
+  appearance: none;
 }
-@media (max-width: 640px) {
-  .assignment-grid {
-    flex-direction: column;
-  }
+.role-note-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.5rem 0.65rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-sm);
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  background: var(--surface);
 }
-
-/* Energy filter + sortable column header (Songs) */
-#song-energy-filter {
-  padding: 0.5rem;
-  border: 1px solid #d6d3d1;
-  border-radius: 4px;
-  margin-bottom: 0.75rem;
+.role-note-input:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(191, 110, 46, 0.13);
 }
-.sortable {
+.role-note-input::placeholder { color: var(--text-muted); font-style: italic; }
+.remove-role-btn {
+  flex-shrink: 0;
+  background: var(--danger-light);
+  border: 1.5px solid rgba(185, 28, 28, 0.15);
+  color: var(--danger);
+  border-radius: var(--r-sm);
+  padding: 0.32rem 0.6rem;
+  font-size: 0.8rem;
   cursor: pointer;
-  user-select: none;
 }
-.sortable:hover {
-  text-decoration: underline;
+.remove-role-btn:hover { background: #FCC8C8; }
+.add-role-btn {
+  align-self: flex-start;
+  background: transparent;
+  border: 1.5px dashed var(--border-strong);
+  color: var(--text-secondary);
+  border-radius: var(--r-sm);
+  padding: 0.32rem 0.8rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 150ms var(--ease);
+}
+.add-role-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-light);
 }
 
-/* Manage Song Keys (Songs) */
-#song-keys-section {
-  margin-top: 1.5rem;
-}
-#song-keys-select {
-  padding: 0.5rem;
-  border: 1px solid #d6d3d1;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-  min-width: 250px;
-}
+/* ─────────────────────────────────────────────────────────────── */
+/* Song Keys section                                                */
+/* ─────────────────────────────────────────────────────────────── */
+#song-keys-section { margin-top: 2.25rem; }
+
 #song-key-form {
-  background: white;
-  padding: 1.25rem;
-  border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  background: var(--surface);
+  padding: 1.25rem 1.5rem;
+  border-radius: var(--r);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.6rem;
   align-items: center;
   margin-bottom: 1rem;
 }
 #song-key-form input {
-  padding: 0.5rem;
-  border: 1px solid #d6d3d1;
-  border-radius: 4px;
-  flex: 1 1 150px;
+  padding: 0.55rem 0.75rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-sm);
+  flex: 1 1 140px;
 }
+
 .checkbox-label {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
-  font-size: 0.9rem;
-}
-#song-key-form button {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
+  gap: 0.45rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
   cursor: pointer;
-  background: #44403c;
-  color: white;
+  user-select: none;
 }
-.make-default-key-btn {
-  background: #d6d3d1;
+.checkbox-label input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+  -webkit-appearance: auto;
+  appearance: auto;
 }
 
-/* Key dropdown in Order of Service song form */
-#oos-song-key-select {
-  padding: 0.5rem;
-  border: 1px solid #d6d3d1;
-  border-radius: 4px;
-  flex: 1 1 150px;
+/* ─────────────────────────────────────────────────────────────── */
+/* Drag-and-drop (OOS song table)                                   */
+/* ─────────────────────────────────────────────────────────────── */
+.drag-col { width: 28px; }
+
+.drag-handle {
+  cursor: grab;
+  color: var(--text-muted);
+  text-align: center;
+  font-size: 1rem;
+  letter-spacing: -1px;
+  user-select: none;
+  padding-left: 0.6rem !important;
+}
+.drag-handle:active { cursor: grabbing; }
+
+#oos-songs-tbody tr[draggable="true"] { cursor: grab; }
+#oos-songs-tbody tr[draggable="true"]:active { cursor: grabbing; }
+
+#oos-songs-tbody tr.dragging { opacity: 0.35; }
+
+#oos-songs-tbody tr.drag-over td {
+  background: var(--accent-light);
+}
+#oos-songs-tbody tr.drag-over td:first-child {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+/* ─────────────────────────────────────────────────────────────── */
+/* Responsive                                                       */
+/* ─────────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  header {
+    padding: 0 1rem;
+    height: 50px;
+  }
+  header h1 { font-size: 1.35rem; }
+
+  #main-nav {
+    padding: 0.5rem 0.75rem;
+    gap: 0.2rem;
+  }
+  .nav-btn {
+    padding: 0.38rem 0.85rem;
+    font-size: 0.8rem;
+  }
+
+  main { padding: 1.25rem 1rem; }
+
+  main form input,
+  main form select,
+  main form textarea { flex: 1 1 100%; }
+
+  .assignment-grid { flex-direction: column; }
+
+  #oos-service-select,
+  #email-service-select,
+  #song-keys-select {
+    min-width: 0;
+    width: 100%;
+  }
 }

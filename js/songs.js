@@ -10,6 +10,7 @@ const songNotesField = document.getElementById('song-notes');
 const songSubmitBtn = document.getElementById('song-submit-btn');
 const songCancelBtn = document.getElementById('song-cancel-btn');
 const songError = document.getElementById('song-error');
+const addSongBtn = document.getElementById('add-song-btn');
 const songSearch = document.getElementById('song-search');
 const songEnergyFilter = document.getElementById('song-energy-filter');
 const songsEnergyHeader = document.getElementById('songs-th-energy');
@@ -36,7 +37,14 @@ function resetSongForm() {
   songSubmitBtn.textContent = 'Add Song';
   songCancelBtn.classList.add('hidden');
   songError.textContent = '';
+  songForm.classList.add('hidden');
 }
+
+addSongBtn.addEventListener('click', () => {
+  resetSongForm();
+  songForm.classList.remove('hidden');
+  songForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+});
 
 async function loadSongs() {
   // song_keys embedded so the main table can show each song's default key/links
@@ -183,6 +191,8 @@ songsTbody.addEventListener('click', async (e) => {
 
     songSubmitBtn.textContent = 'Update Song';
     songCancelBtn.classList.remove('hidden');
+    songForm.classList.remove('hidden');
+    songForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
   if (e.target.classList.contains('delete-btn')) {

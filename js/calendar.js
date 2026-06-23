@@ -7,6 +7,7 @@ const serviceNotesField = document.getElementById('service-notes');
 const serviceSubmitBtn = document.getElementById('service-submit-btn');
 const serviceCancelBtn = document.getElementById('service-cancel-btn');
 const serviceError = document.getElementById('service-error');
+const addServiceBtn = document.getElementById('add-service-btn');
 const servicesTbody = document.getElementById('services-tbody');
 const serviceSearch = document.getElementById('service-search');
 
@@ -21,7 +22,14 @@ function resetServiceForm() {
   serviceSubmitBtn.textContent = 'Add Service';
   serviceCancelBtn.classList.add('hidden');
   serviceError.textContent = '';
+  serviceForm.classList.add('hidden');
 }
+
+addServiceBtn.addEventListener('click', () => {
+  resetServiceForm();
+  serviceForm.classList.remove('hidden');
+  serviceForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+});
 
 // ---- Local-time date helpers ----
 // Deliberately avoid toISOString() here: it converts to UTC and can shift
@@ -180,6 +188,8 @@ servicesTbody.addEventListener('click', async (e) => {
 
     serviceSubmitBtn.textContent = 'Update Service';
     serviceCancelBtn.classList.remove('hidden');
+    serviceForm.classList.remove('hidden');
+    serviceForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
   if (e.target.classList.contains('delete-service-btn')) {

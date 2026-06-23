@@ -34,9 +34,12 @@
     </nav>
     <main>
       <section id="songs-section" class="app-section">
-        <h2>Songs</h2>
+        <div class="section-header">
+          <h2>Songs</h2>
+          <button type="button" id="add-song-btn" class="add-record-btn">+ Add Song</button>
+        </div>
 
-        <form id="song-form">
+        <form id="song-form" class="hidden">
           <input type="hidden" id="song-id">
           <input type="text" id="song-title" placeholder="Title" required>
           <input type="text" id="song-artist" placeholder="Artist">
@@ -117,9 +120,12 @@
       </section>
 
       <section id="musicians-section" class="app-section hidden">
-        <h2>Musicians</h2>
+        <div class="section-header">
+          <h2>Musicians</h2>
+          <button type="button" id="add-musician-btn" class="add-record-btn">+ Add Musician</button>
+        </div>
 
-        <form id="musician-form">
+        <form id="musician-form" class="hidden">
           <input type="hidden" id="musician-id">
           <input type="text" id="musician-name" placeholder="Name" required>
           <input type="email" id="musician-email" placeholder="Email">
@@ -176,9 +182,12 @@
       </section>
 
       <section id="calendar-section" class="app-section hidden">
-        <h2>Calendar</h2>
+        <div class="section-header">
+          <h2>Calendar</h2>
+          <button type="button" id="add-service-btn" class="add-record-btn">+ Add Service</button>
+        </div>
 
-        <form id="service-form">
+        <form id="service-form" class="hidden">
           <input type="hidden" id="service-id">
           <input type="date" id="service-date" required>
           <input type="text" id="service-title" placeholder="Title (e.g. Easter Sunday)">
@@ -223,6 +232,12 @@
         <div id="oos-content" class="hidden">
           <h3>Songs</h3>
           <form id="oos-song-form">
+            <select id="oos-energy-filter">
+              <option value="">All Energy</option>
+              <option value="High">High Energy</option>
+              <option value="Medium">Medium Energy</option>
+              <option value="Low">Low Energy</option>
+            </select>
             <select id="oos-song-select" required></select>
             <select id="oos-song-key-select">
               <option value="">— Select a song first —</option>
@@ -237,6 +252,7 @@
             <table id="oos-songs-table">
               <thead>
                 <tr>
+                  <th class="drag-col"></th>
                   <th>#</th>
                   <th>Title</th>
                   <th>Key</th>
@@ -251,30 +267,40 @@
 
           <h3>Musician Assignments</h3>
           <div id="oos-assignments-grid" class="assignment-grid">
-            <div class="assignment-row">
+            <div class="assignment-row" data-role="Vocals">
               <label>Vocals</label>
-              <div id="oos-vocals-selects"></div>
-              <button type="button" id="oos-add-vocalist-btn" class="add-vocalist-btn">+ Add vocalist</button>
+              <div class="role-slots"></div>
+              <button type="button" class="add-role-btn" data-role="Vocals">+ Add</button>
             </div>
-            <div class="assignment-row">
+            <div class="assignment-row" data-role="Rhythm Guitar">
               <label>Rhythm Guitar</label>
-              <select class="oos-role-select" data-role="Rhythm Guitar"></select>
+              <div class="role-slots"></div>
+              <button type="button" class="add-role-btn" data-role="Rhythm Guitar">+ Add</button>
             </div>
-            <div class="assignment-row">
+            <div class="assignment-row" data-role="Electric Guitar">
               <label>Electric Guitar</label>
-              <select class="oos-role-select" data-role="Electric Guitar"></select>
+              <div class="role-slots"></div>
+              <button type="button" class="add-role-btn" data-role="Electric Guitar">+ Add</button>
             </div>
-            <div class="assignment-row">
+            <div class="assignment-row" data-role="Bass">
               <label>Bass</label>
-              <select class="oos-role-select" data-role="Bass"></select>
+              <div class="role-slots"></div>
+              <button type="button" class="add-role-btn" data-role="Bass">+ Add</button>
             </div>
-            <div class="assignment-row">
+            <div class="assignment-row" data-role="Keys">
               <label>Keys</label>
-              <select class="oos-role-select" data-role="Keys"></select>
+              <div class="role-slots"></div>
+              <button type="button" class="add-role-btn" data-role="Keys">+ Add</button>
             </div>
-            <div class="assignment-row">
+            <div class="assignment-row" data-role="Drums">
+              <label>Drums</label>
+              <div class="role-slots"></div>
+              <button type="button" class="add-role-btn" data-role="Drums">+ Add</button>
+            </div>
+            <div class="assignment-row" data-role="Other">
               <label>Other</label>
-              <select class="oos-role-select" data-role="Other"></select>
+              <div class="role-slots"></div>
+              <button type="button" class="add-role-btn" data-role="Other">+ Add</button>
             </div>
           </div>
           <p id="oos-assignment-error" class="error"></p>
