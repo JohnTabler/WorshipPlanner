@@ -7,6 +7,17 @@ body {
 }
 .hidden { display: none; }
 
+button {
+  cursor: pointer;
+  transition: filter 0.15s ease, transform 0.05s ease, background-color 0.15s ease;
+}
+button:hover {
+  filter: brightness(1.08);
+}
+button:active {
+  transform: scale(0.97);
+}
+
 #login-view {
   height: 100vh;
   display: flex;
@@ -93,7 +104,9 @@ main {
 #song-submit-btn { background: #44403c; color: white; }
 #song-cancel-btn { background: #e7e5e4; }
 
-#song-search {
+#song-search,
+#musician-search,
+#service-search {
   width: 100%;
   padding: 0.5rem;
   margin-bottom: 0.75rem;
@@ -139,9 +152,15 @@ main {
   cursor: pointer;
   font-weight: 500;
 }
+.nav-btn:hover {
+  background: #e7e5e4;
+}
 .nav-btn.active {
   background: #44403c;
   color: white;
+}
+.nav-btn.active:hover {
+  background: #57534e;
 }
 
 /* Generic styles for forms/tables added in Musicians, Calendar, Order of Service, Email */
@@ -228,4 +247,41 @@ main table button {
 #email-copy-status {
   color: #166534;
   font-size: 0.85rem;
+}
+
+/* Lets wide tables scroll horizontally instead of breaking the layout on phones */
+.table-scroll {
+  overflow-x: auto;
+  margin-bottom: 1.5rem;
+}
+.table-scroll table {
+  margin-bottom: 0;
+}
+
+/* Mobile adjustments */
+@media (max-width: 640px) {
+  header {
+    padding: 0.75rem 1rem;
+  }
+  header h1 {
+    font-size: 1.1rem;
+  }
+  #main-nav {
+    padding: 0.5rem 0.75rem;
+    gap: 0.25rem;
+  }
+  .nav-btn {
+    padding: 0.4rem 0.7rem;
+    font-size: 0.85rem;
+  }
+  main {
+    padding: 0.75rem;
+  }
+  #song-form input,
+  #song-form textarea,
+  main form input,
+  main form select,
+  main form textarea {
+    flex: 1 1 100%;
+  }
 }
