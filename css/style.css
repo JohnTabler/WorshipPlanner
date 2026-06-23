@@ -285,3 +285,70 @@ main table button {
     flex: 1 1 100%;
   }
 }
+
+/* Repeat-song caution flag (Order of Service) */
+.caution {
+  color: #92400e;
+  background: #fef3c7;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+/* Musician assignment dropdowns (Order of Service) */
+.assignment-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  background: white;
+  padding: 1.25rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  margin-bottom: 0.75rem;
+}
+.assignment-row {
+  flex: 1 1 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.assignment-row label {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+.assignment-row select,
+.vocals-select-row select {
+  padding: 0.5rem;
+  border: 1px solid #d6d3d1;
+  border-radius: 4px;
+}
+.vocals-select-row {
+  display: flex;
+  gap: 0.35rem;
+  margin-bottom: 0.35rem;
+}
+.vocals-select-row select {
+  flex: 1;
+}
+.remove-vocalist-btn {
+  border: none;
+  background: #fecaca;
+  border-radius: 4px;
+  padding: 0 0.6rem;
+  cursor: pointer;
+}
+.add-vocalist-btn {
+  align-self: flex-start;
+  border: none;
+  background: #d6d3d1;
+  border-radius: 4px;
+  padding: 0.35rem 0.7rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+@media (max-width: 640px) {
+  .assignment-grid {
+    flex-direction: column;
+  }
+}
