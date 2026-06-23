@@ -154,7 +154,26 @@ async function loadServiceSongs() {
   }
 
   currentServiceSongs = data;
+  await renumberServiceSongsIfNeeded();
   renderServiceSongs();
+}
+
+// Self-heals position numbering on every load - closes gaps left by deletes
+// and splits any duplicate position values (e.g. from a fast double-click on Add).
+async function renumberServiceSongsIfNeeded() {
+  const fixes = [];
+
+  currentServiceSongs.forEach((row, index) => {
+    const correctPosition = index + 1;
+    if (row.position !== correctPosition) {
+      fixes.push({ id: row.id, position: correctPosition });
+      row.position = correctPosition;
+    }
+  });
+
+  for (const fix of fixes) {
+    await supabaseClient.from('service_songs').update({ position: fix.position }).eq('id', fix.id);
+  }
 }
 
 function renderServiceSongs() {
