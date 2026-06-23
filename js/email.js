@@ -23,7 +23,7 @@ emailServiceSelect.addEventListener('change', async () => {
 
   const { data: songRows, error: songError } = await supabaseClient
     .from('service_songs')
-    .select('*, songs(title, song_key, bpm, youtube_link, chord_chart_link)')
+    .select('*, songs(title, bpm), song_keys(song_key, youtube_link, chord_chart_link)')
     .eq('service_id', serviceId)
     .order('position', { ascending: true });
 
@@ -63,13 +63,13 @@ function buildEmailText(service, songRows, assignmentRows) {
   } else {
     songRows.forEach((row, index) => {
       const song = row.songs || {};
-      const key = row.key_override || song.song_key || '';
+      const keyInfo = row.song_keys || {};
       const parts = [`${index + 1}. ${song.title || ''}`];
-      if (key) parts.push(`Key: ${key}`);
+      if (keyInfo.song_key) parts.push(`Key: ${keyInfo.song_key}`);
       if (song.bpm) parts.push(`BPM: ${song.bpm}`);
       lines.push('  ' + parts.join(' | '));
-      if (song.youtube_link) lines.push(`     YouTube: ${song.youtube_link}`);
-      if (song.chord_chart_link) lines.push(`     Chart: ${song.chord_chart_link}`);
+      if (keyInfo.youtube_link) lines.push(`     YouTube: ${keyInfo.youtube_link}`);
+      if (keyInfo.chord_chart_link) lines.push(`     Chart: ${keyInfo.chord_chart_link}`);
       if (row.notes) lines.push(`     Notes: ${row.notes}`);
     });
   }

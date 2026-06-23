@@ -3,7 +3,7 @@ const oosContent = document.getElementById('oos-content');
 
 const oosSongForm = document.getElementById('oos-song-form');
 const oosSongSelect = document.getElementById('oos-song-select');
-const oosKeyOverrideField = document.getElementById('oos-key-override');
+const oosSongKeySelect = document.getElementById('oos-song-key-select');
 const oosSongNotesField = document.getElementById('oos-song-notes');
 const oosSongCaution = document.getElementById('oos-song-caution');
 const oosSongError = document.getElementById('oos-song-error');
@@ -41,8 +41,6 @@ function musicianMatchesRole(musician, role) {
   const keywords = ROLE_KEYWORDS[role] || [];
   if (tags.some((tag) => keywords.some((kw) => tag.includes(kw)))) return true;
 
-  // An unqualified "guitar" tag (no rhythm/electric/acoustic/lead qualifier) is
-  // ambiguous, so it's offered in both guitar dropdowns rather than guessed at.
   if (role === 'Rhythm Guitar' || role === 'Electric Guitar') {
     return tags.some((tag) => tag.includes('guitar') && !tag.includes('bass'));
   }
@@ -58,7 +56,6 @@ function buildRoleOptionsHtml(role, selectedMusicianId) {
   return options.join('');
 }
 
-// Local-date formatter (avoids the UTC-shift bug toISOString() can cause)
 function formatLocalISODateForFilter(date) {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -85,7 +82,6 @@ function populateSongDropdownForOos() {
 }
 
 // Kept as a no-op so musicians.js's conditional call to this stays harmless.
-// Role dropdowns are now built directly from buildRoleOptionsHtml() via loadAssignments().
 function populateMusicianDropdownForOos() {}
 
 oosServiceSelect.addEventListener('change', async () => {
@@ -100,6 +96,7 @@ oosServiceSelect.addEventListener('change', async () => {
 
   oosContent.classList.remove('hidden');
   populateSongDropdownForOos();
+  await populateKeySelectForSong('');
   await loadPreviousServiceSongs();
   await loadServiceSongs();
   await loadAssignments();
@@ -130,8 +127,39 @@ async function loadPreviousServiceSongs() {
   previousServiceSongIds = new Set(data.map((r) => r.song_id));
 }
 
-oosSongSelect.addEventListener('change', () => {
+// Populates the key dropdown for whichever song is selected, defaulting to that song's marked default key
+async function populateKeySelectForSong(songId) {
+  if (!songId) {
+    oosSongKeySelect.innerHTML = '<option value="">— Select a song first —</option>';
+    return;
+  }
+
+  const { data, error } = await supabaseClient
+    .from('song_keys')
+    .select('*')
+    .eq('song_id', songId)
+    .order('song_key', { ascending: true });
+
+  if (error) {
+    console.error('Error loading song keys:', error);
+    oosSongKeySelect.innerHTML = '<option value="">— Error loading keys —</option>';
+    return;
+  }
+
+  if (!data.length) {
+    oosSongKeySelect.innerHTML = '<option value="">— No keys defined for this song —</option>';
+    return;
+  }
+
+  const defaultKey = data.find((k) => k.is_default) || data[0];
+  oosSongKeySelect.innerHTML = data
+    .map((k) => `<option value="${k.id}" ${k.id === defaultKey.id ? 'selected' : ''}>${k.song_key}</option>`)
+    .join('');
+}
+
+oosSongSelect.addEventListener('change', async () => {
   const songId = oosSongSelect.value;
+
   if (songId && previousServiceSongIds.has(songId)) {
     oosSongCaution.textContent = `⚠️ Used last Sunday (${previousServiceLabel}).`;
     oosSongCaution.classList.remove('hidden');
@@ -139,12 +167,14 @@ oosSongSelect.addEventListener('change', () => {
     oosSongCaution.textContent = '';
     oosSongCaution.classList.add('hidden');
   }
+
+  await populateKeySelectForSong(songId);
 });
 
 async function loadServiceSongs() {
   const { data, error } = await supabaseClient
     .from('service_songs')
-    .select('*, songs(title, song_key, bpm)')
+    .select('*, songs(title, bpm), song_keys(song_key)')
     .eq('service_id', currentServiceId)
     .order('position', { ascending: true });
 
@@ -181,12 +211,13 @@ function renderServiceSongs() {
 
   currentServiceSongs.forEach((row, index) => {
     const song = row.songs || {};
+    const keyLabel = row.song_keys ? row.song_keys.song_key : '';
     const flagged = previousServiceSongIds.has(row.song_id);
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${row.position}</td>
       <td>${flagged ? '⚠️ ' : ''}${song.title || ''}</td>
-      <td>${row.key_override || song.song_key || ''}</td>
+      <td>${keyLabel}</td>
       <td>${song.bpm || ''}</td>
       <td>${row.notes || ''}</td>
       <td>
@@ -215,7 +246,7 @@ oosSongForm.addEventListener('submit', async (e) => {
     service_id: currentServiceId,
     song_id: songId,
     position: nextPosition,
-    key_override: oosKeyOverrideField.value || null,
+    song_key_id: oosSongKeySelect.value || null,
     notes: oosSongNotesField.value || null
   });
 
@@ -227,6 +258,7 @@ oosSongForm.addEventListener('submit', async (e) => {
   oosSongForm.reset();
   oosSongCaution.textContent = '';
   oosSongCaution.classList.add('hidden');
+  oosSongKeySelect.innerHTML = '<option value="">— Select a song first —</option>';
   loadServiceSongs();
 });
 
