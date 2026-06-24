@@ -24,6 +24,10 @@ const sfkYoutubeField = document.getElementById('sfk-youtube');
 const sfkChartField = document.getElementById('sfk-chart');
 const sfkDefaultField = document.getElementById('sfk-default');
 const sfkAddBtn = document.getElementById('sfk-add-btn');
+const sfkCapoToggleBtn = document.getElementById('sfk-capo-toggle-btn');
+const sfkCapoRow = document.getElementById('sfk-capo-row');
+const sfkCapoField = document.getElementById('sfk-capo');
+const sfkCapoChartField = document.getElementById('sfk-capo-chart');
 const sfkError = document.getElementById('sfk-error');
 
 let allSongs = [];
@@ -52,6 +56,10 @@ function resetKeyInputs() {
   sfkYoutubeField.value = '';
   sfkChartField.value = '';
   sfkDefaultField.checked = false;
+  sfkCapoField.value = '';
+  sfkCapoChartField.value = '';
+  sfkCapoRow.classList.add('hidden');
+  sfkCapoToggleBtn.textContent = '+ Add Capo';
   sfkError.textContent = '';
 }
 
@@ -184,6 +192,8 @@ songForm.addEventListener('submit', async (e) => {
         song_key: k.name,
         youtube_link: k.youtube || null,
         chord_chart_link: k.chart || null,
+        capo_number: k.capoNumber || null,
+        capo_chord_chart_link: k.capoChart || null,
         is_default: k.isDefault
       });
     }
@@ -261,6 +271,8 @@ async function loadModalKeysForEdit(songId) {
       name: k.song_key,
       youtube: k.youtube_link || '',
       chart: k.chord_chart_link || '',
+      capoNumber: k.capo_number || null,
+      capoChart: k.capo_chord_chart_link || '',
       isDefault: k.is_default,
       _editing: false
     }));
@@ -286,6 +298,8 @@ function renderModalKeys() {
           <input class="sfk-edit-name" type="text" value="${esc(k.name)}" placeholder="Key">
           <input class="sfk-edit-youtube" type="url" value="${esc(k.youtube)}" placeholder="YouTube link">
           <input class="sfk-edit-chart" type="url" value="${esc(k.chart)}" placeholder="Chord chart link">
+          <input class="sfk-edit-capo" type="number" value="${k.capoNumber || ''}" placeholder="Capo #" min="1" max="12">
+          <input class="sfk-edit-capo-chart" type="url" value="${esc(k.capoChart || '')}" placeholder="Capo chart link">
           <span class="sfk-key-actions">
             <button type="button" class="sfk-save-btn" data-ref="${k.ref}">Save</button>
             <button type="button" class="sfk-cancel-edit-btn" data-ref="${k.ref}">Cancel</button>
@@ -296,8 +310,10 @@ function renderModalKeys() {
       <div class="sfk-key-row">
         <span class="sfk-key-name">${esc(k.name)}</span>
         ${k.isDefault ? '<span class="sfk-key-star">★</span>' : ''}
+        ${k.capoNumber ? `<span class="sfk-capo-badge">Capo ${k.capoNumber}</span>` : ''}
         ${k.youtube ? `<a href="${esc(k.youtube)}" target="_blank" class="sfk-key-link">YouTube</a>` : ''}
         ${k.chart ? `<a href="${esc(k.chart)}" target="_blank" class="sfk-key-link">Chart</a>` : ''}
+        ${k.capoChart ? `<a href="${esc(k.capoChart)}" target="_blank" class="sfk-key-link">Capo Chart</a>` : ''}
         <span class="sfk-key-actions">
           ${!k.isDefault ? `<button type="button" class="sfk-default-btn" data-ref="${k.ref}">Default</button>` : ''}
           <button type="button" class="sfk-edit-btn" data-ref="${k.ref}">Edit</button>
@@ -307,12 +323,24 @@ function renderModalKeys() {
   }).join('');
 }
 
+sfkCapoToggleBtn.addEventListener('click', () => {
+  const showing = !sfkCapoRow.classList.contains('hidden');
+  sfkCapoRow.classList.toggle('hidden', showing);
+  sfkCapoToggleBtn.textContent = showing ? '+ Add Capo' : '− Remove Capo';
+  if (showing) {
+    sfkCapoField.value = '';
+    sfkCapoChartField.value = '';
+  }
+});
+
 sfkAddBtn.addEventListener('click', async () => {
   sfkError.textContent = '';
   const keyName = sfkNameField.value.trim();
   if (!keyName) { sfkError.textContent = 'Key name is required.'; return; }
 
   const makeDefault = sfkDefaultField.checked || modalKeys.length === 0;
+  const capoNumber = sfkCapoField.value ? parseInt(sfkCapoField.value, 10) : null;
+  const capoChart = sfkCapoChartField.value.trim();
 
   if (!editingSongId) {
     // New song: buffer in memory until form submit
@@ -323,6 +351,8 @@ sfkAddBtn.addEventListener('click', async () => {
       name: keyName,
       youtube: sfkYoutubeField.value.trim(),
       chart: sfkChartField.value.trim(),
+      capoNumber,
+      capoChart,
       isDefault: makeDefault,
       _editing: false
     });
@@ -341,6 +371,8 @@ sfkAddBtn.addEventListener('click', async () => {
       song_key: keyName,
       youtube_link: sfkYoutubeField.value.trim() || null,
       chord_chart_link: sfkChartField.value.trim() || null,
+      capo_number: capoNumber,
+      capo_chord_chart_link: capoChart || null,
       is_default: makeDefault
     }).select().single();
 
@@ -352,6 +384,8 @@ sfkAddBtn.addEventListener('click', async () => {
       name: data.song_key,
       youtube: data.youtube_link || '',
       chart: data.chord_chart_link || '',
+      capoNumber: data.capo_number || null,
+      capoChart: data.capo_chord_chart_link || '',
       isDefault: data.is_default,
       _editing: false
     });
@@ -385,6 +419,9 @@ sfkList.addEventListener('click', async (e) => {
     const newName = row.querySelector('.sfk-edit-name').value.trim();
     const newYoutube = row.querySelector('.sfk-edit-youtube').value.trim();
     const newChart = row.querySelector('.sfk-edit-chart').value.trim();
+    const newCapoRaw = row.querySelector('.sfk-edit-capo').value;
+    const newCapoNumber = newCapoRaw ? parseInt(newCapoRaw, 10) : null;
+    const newCapoChart = row.querySelector('.sfk-edit-capo-chart').value.trim();
 
     if (!newName) { sfkError.textContent = 'Key name is required.'; return; }
 
@@ -392,7 +429,9 @@ sfkList.addEventListener('click', async (e) => {
       const { error } = await supabaseClient.from('song_keys').update({
         song_key: newName,
         youtube_link: newYoutube || null,
-        chord_chart_link: newChart || null
+        chord_chart_link: newChart || null,
+        capo_number: newCapoNumber,
+        capo_chord_chart_link: newCapoChart || null
       }).eq('id', key.dbId);
       if (error) { sfkError.textContent = 'Could not update key. ' + error.message; return; }
     }
@@ -400,6 +439,8 @@ sfkList.addEventListener('click', async (e) => {
     key.name = newName;
     key.youtube = newYoutube;
     key.chart = newChart;
+    key.capoNumber = newCapoNumber;
+    key.capoChart = newCapoChart;
     key._editing = false;
     renderModalKeys();
     return;

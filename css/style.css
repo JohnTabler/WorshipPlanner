@@ -991,6 +991,45 @@ main > section > label,
   background: var(--accent-light);
 }
 
+#sfk-capo-toggle-btn {
+  background: var(--surface-2);
+  border: 1.5px dashed var(--border-strong);
+  color: var(--text-muted);
+  padding: 0.42rem 0.9rem;
+  font-size: 0.82rem;
+}
+#sfk-capo-toggle-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-light);
+}
+
+.sfk-capo-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.5rem 0.6rem;
+  background: var(--accent-light);
+  border: 1px solid var(--accent-mid);
+  border-radius: var(--r-sm);
+}
+.sfk-capo-row input[type="number"] { flex: 0 1 150px; }
+.sfk-capo-row input[type="url"] { flex: 1 1 180px; }
+
+.sfk-capo-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: var(--accent-light);
+  color: var(--accent-hover);
+  border: 1px solid var(--accent-mid);
+  border-radius: 3px;
+  padding: 0.1rem 0.4rem;
+  flex-shrink: 0;
+}
+
+.sfk-key-editing .sfk-edit-capo { flex: 0 1 90px; min-width: 60px; }
+.sfk-key-editing .sfk-edit-capo-chart { flex: 1 1 130px; min-width: 0; }
+
 /* ─────────────────────────────────────────────────────────────── */
 /* Modal overlay                                                    */
 /* ─────────────────────────────────────────────────────────────── */
@@ -1140,7 +1179,9 @@ body.modal-open { overflow: hidden; }
 
   main form input,
   main form select,
-  main form textarea { flex: 1 1 100%; }
+  main form textarea { flex: 1 1 100%; min-width: 0; }
+
+  body { overflow-x: hidden; }
 
   .assignment-grid { flex-direction: column; }
 

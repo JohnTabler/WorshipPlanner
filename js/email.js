@@ -72,7 +72,7 @@ emailServiceSelect.addEventListener('change', async () => {
   const [{ data: songRows, error: songError }, { data: assignmentRows, error: assignError }] = await Promise.all([
     supabaseClient
       .from('service_songs')
-      .select('*, songs(title, bpm), song_keys(song_key, youtube_link, chord_chart_link)')
+      .select('*, songs(title, bpm), song_keys(song_key, youtube_link, chord_chart_link, capo_number, capo_chord_chart_link)')
       .eq('service_id', serviceId)
       .order('position', { ascending: true }),
     supabaseClient
@@ -157,7 +157,9 @@ function buildEmailHtml(service, songRows, assignmentRows, intro) {
       const songTitle = escHtml(song.title || 'Untitled');
 
       const metaParts = [];
-      if (keyInfo.song_key) metaParts.push(`Key: ${escHtml(keyInfo.song_key)}`);
+      if (keyInfo.song_key) {
+        metaParts.push(`Key: ${escHtml(keyInfo.song_key)}`);
+      }
       if (song.bpm) metaParts.push(`BPM: ${escHtml(String(song.bpm))}`);
       const metaRow = metaParts.length
         ? `<tr><td></td><td style="padding-top:5px;font-size:12px;color:#5A4D44;font-family:Arial,sans-serif;">${metaParts.join(' &nbsp;|&nbsp; ')}</td></tr>`
@@ -166,6 +168,7 @@ function buildEmailHtml(service, songRows, assignmentRows, intro) {
       const linkParts = [];
       if (keyInfo.youtube_link) linkParts.push(`<a href="${escHtml(keyInfo.youtube_link)}" style="color:#BF6E2E;text-decoration:none;font-family:Arial,sans-serif;font-size:12px;">&#9654; YouTube</a>`);
       if (keyInfo.chord_chart_link) linkParts.push(`<a href="${escHtml(keyInfo.chord_chart_link)}" style="color:#BF6E2E;text-decoration:none;font-family:Arial,sans-serif;font-size:12px;">&#9835; Chord Chart</a>`);
+      if (keyInfo.capo_chord_chart_link) linkParts.push(`<a href="${escHtml(keyInfo.capo_chord_chart_link)}" style="color:#BF6E2E;text-decoration:none;font-family:Arial,sans-serif;font-size:12px;">&#9835; ${keyInfo.capo_number ? `(Capo ${escHtml(String(keyInfo.capo_number))}) ` : ''}Capo Chart</a>`);
       const linksRow = linkParts.length
         ? `<tr><td></td><td style="padding-top:7px;">${linkParts.join('&nbsp;&nbsp;&nbsp;')}</td></tr>`
         : '';
@@ -239,6 +242,7 @@ function buildEmailPlain(service, songRows, assignmentRows, intro) {
       lines.push('  ' + parts.join(' | '));
       if (keyInfo.youtube_link) lines.push(`     YouTube: ${keyInfo.youtube_link}`);
       if (keyInfo.chord_chart_link) lines.push(`     Chart: ${keyInfo.chord_chart_link}`);
+      if (keyInfo.capo_chord_chart_link) lines.push(`     ${keyInfo.capo_number ? `(Capo ${keyInfo.capo_number}) ` : ''}Capo Chart: ${keyInfo.capo_chord_chart_link}`);
       if (row.notes) lines.push(`     Notes: ${row.notes}`);
     });
   }
