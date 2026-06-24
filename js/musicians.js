@@ -27,13 +27,13 @@ function resetMusicianForm() {
   musicianSubmitBtn.textContent = 'Add Musician';
   musicianCancelBtn.classList.add('hidden');
   musicianError.textContent = '';
-  musicianForm.classList.add('hidden');
+  closeModal();
 }
 
 addMusicianBtn.addEventListener('click', () => {
   resetMusicianForm();
-  musicianForm.classList.remove('hidden');
-  musicianForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  musicianCancelBtn.classList.remove('hidden');
+  openModal(musicianForm);
 });
 
 async function loadMusicians() {
@@ -142,8 +142,7 @@ musiciansTbody.addEventListener('click', async (e) => {
 
     musicianSubmitBtn.textContent = 'Update Musician';
     musicianCancelBtn.classList.remove('hidden');
-    musicianForm.classList.remove('hidden');
-    musicianForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    openModal(musicianForm);
   }
 
   if (e.target.classList.contains('delete-musician-btn')) {

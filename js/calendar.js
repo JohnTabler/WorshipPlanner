@@ -22,13 +22,13 @@ function resetServiceForm() {
   serviceSubmitBtn.textContent = 'Add Service';
   serviceCancelBtn.classList.add('hidden');
   serviceError.textContent = '';
-  serviceForm.classList.add('hidden');
+  closeModal();
 }
 
 addServiceBtn.addEventListener('click', () => {
   resetServiceForm();
-  serviceForm.classList.remove('hidden');
-  serviceForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  serviceCancelBtn.classList.remove('hidden');
+  openModal(serviceForm);
 });
 
 // ---- Local-time date helpers ----
@@ -188,8 +188,7 @@ servicesTbody.addEventListener('click', async (e) => {
 
     serviceSubmitBtn.textContent = 'Update Service';
     serviceCancelBtn.classList.remove('hidden');
-    serviceForm.classList.remove('hidden');
-    serviceForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    openModal(serviceForm);
   }
 
   if (e.target.classList.contains('delete-service-btn')) {

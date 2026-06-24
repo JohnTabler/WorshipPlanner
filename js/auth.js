@@ -2,7 +2,7 @@ const loginView = document.getElementById('login-view');
 const appView = document.getElementById('app-view');
 const loginForm = document.getElementById('login-form');
 const loginError = document.getElementById('login-error');
-const logoutBtn = document.getElementById('logout-btn');
+const logoutBtns = document.querySelectorAll('.logout-trigger');
 
 function showApp() {
   loginView.classList.add('hidden');
@@ -52,9 +52,11 @@ loginForm.addEventListener('submit', async (e) => {
   }
 });
 
-logoutBtn.addEventListener('click', async () => {
-  await supabaseClient.auth.signOut();
-  showLogin();
+logoutBtns.forEach((btn) => {
+  btn.addEventListener('click', async () => {
+    await supabaseClient.auth.signOut();
+    showLogin();
+  });
 });
 
 document.addEventListener('DOMContentLoaded', checkSession);

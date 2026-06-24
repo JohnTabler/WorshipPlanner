@@ -21,17 +21,30 @@
 
   <!-- App view -->
   <div id="app-view" class="view hidden">
-    <header>
+
+    <!-- Desktop sidebar -->
+    <aside id="sidebar">
+      <div class="sidebar-brand">
+        <h1>Worship Planner</h1>
+      </div>
+      <nav id="main-nav">
+        <button class="nav-btn active" data-section="songs-section"><span class="nav-icon">🎵</span><span class="nav-label">Songs</span></button>
+        <button class="nav-btn" data-section="musicians-section"><span class="nav-icon">👤</span><span class="nav-label">Musicians</span></button>
+        <button class="nav-btn" data-section="calendar-section"><span class="nav-icon">📅</span><span class="nav-label">Calendar</span></button>
+        <button class="nav-btn" data-section="oos-section"><span class="nav-icon">📋</span><span class="nav-label">Order of Service</span></button>
+        <button class="nav-btn" data-section="email-section"><span class="nav-icon">✉️</span><span class="nav-label">Email</span></button>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="logout-btn" class="logout-trigger">Log Out</button>
+      </div>
+    </aside>
+
+    <!-- Mobile top bar (hidden on desktop) -->
+    <div id="mobile-header">
       <h1>Worship Planner</h1>
-      <button id="logout-btn">Log Out</button>
-    </header>
-    <nav id="main-nav">
-      <button class="nav-btn active" data-section="songs-section">Songs</button>
-      <button class="nav-btn" data-section="musicians-section">Musicians</button>
-      <button class="nav-btn" data-section="calendar-section">Calendar</button>
-      <button class="nav-btn" data-section="oos-section">Order of Service</button>
-      <button class="nav-btn" data-section="email-section">Email</button>
-    </nav>
+      <button id="mobile-logout-btn" class="logout-trigger">Log Out</button>
+    </div>
+
     <main>
       <section id="songs-section" class="app-section">
         <div class="section-header">
@@ -40,6 +53,7 @@
         </div>
 
         <form id="song-form" class="hidden">
+          <button type="button" class="modal-x-btn">×</button>
           <input type="hidden" id="song-id">
           <input type="text" id="song-title" placeholder="Title" required>
           <input type="text" id="song-artist" placeholder="Artist">
@@ -53,6 +67,18 @@
           </select>
           <input type="date" id="song-last-played">
           <textarea id="song-notes" placeholder="Notes"></textarea>
+          <div class="song-form-keys" id="song-form-keys">
+            <span class="sfk-label">Keys</span>
+            <div id="sfk-list"></div>
+            <div class="sfk-add-row">
+              <input type="text" id="sfk-name" placeholder="Key (e.g. G)">
+              <input type="url" id="sfk-youtube" placeholder="YouTube link">
+              <input type="url" id="sfk-chart" placeholder="Chord chart link">
+              <label class="checkbox-label"><input type="checkbox" id="sfk-default"> Default</label>
+              <button type="button" id="sfk-add-btn">+ Add Key</button>
+            </div>
+            <p id="sfk-error" class="error"></p>
+          </div>
           <div class="form-actions">
             <button type="submit" id="song-submit-btn">Add Song</button>
             <button type="button" id="song-cancel-btn" class="hidden">Cancel</button>
@@ -87,36 +113,6 @@
           </table>
         </div>
 
-        <h3 id="song-keys-section">Manage Song Keys</h3>
-        <label for="song-keys-select">Song:</label>
-        <select id="song-keys-select">
-          <option value="">Select a song</option>
-        </select>
-
-        <div id="song-keys-content" class="hidden">
-          <form id="song-key-form">
-            <input type="text" id="song-key-name" placeholder="Key (e.g. G)" required>
-            <input type="url" id="song-key-youtube" placeholder="YouTube link">
-            <input type="url" id="song-key-chart" placeholder="Chord chart link">
-            <label class="checkbox-label"><input type="checkbox" id="song-key-default"> Default</label>
-            <button type="submit">Add Key</button>
-            <p id="song-key-error" class="error"></p>
-          </form>
-
-          <div class="table-scroll">
-            <table id="song-keys-table">
-              <thead>
-                <tr>
-                  <th>Key</th>
-                  <th>Default</th>
-                  <th>Links</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody id="song-keys-tbody"></tbody>
-            </table>
-          </div>
-        </div>
       </section>
 
       <section id="musicians-section" class="app-section hidden">
@@ -126,6 +122,7 @@
         </div>
 
         <form id="musician-form" class="hidden">
+          <button type="button" class="modal-x-btn">×</button>
           <input type="hidden" id="musician-id">
           <input type="text" id="musician-name" placeholder="Name" required>
           <input type="email" id="musician-email" placeholder="Email">
@@ -188,6 +185,7 @@
         </div>
 
         <form id="service-form" class="hidden">
+          <button type="button" class="modal-x-btn">×</button>
           <input type="hidden" id="service-id">
           <input type="date" id="service-date" required>
           <input type="text" id="service-title" placeholder="Title (e.g. Easter Sunday)">
@@ -315,16 +313,49 @@
           <option value="">Select a service</option>
         </select>
 
-        <textarea id="email-output" rows="20" readonly></textarea>
-        <button id="email-copy-btn" type="button">Copy to Clipboard</button>
-        <p id="email-copy-status"></p>
+        <div id="email-intro-section" class="hidden">
+          <label class="email-intro-label" for="email-intro-input">Intro Message</label>
+          <textarea id="email-intro-input" rows="4" placeholder="Hey everyone, so excited to get to worship with y'all this week!"></textarea>
+          <div class="email-intro-actions">
+            <button id="email-intro-confirm-btn" type="button">Confirm Message</button>
+            <span id="email-intro-status" class="email-copy-status-text"></span>
+          </div>
+        </div>
+
+        <div id="email-recipients-section" class="hidden">
+          <label class="email-recipients-label">Recipients</label>
+          <div class="email-recipients-row">
+            <input type="text" id="email-recipients-output" readonly>
+            <button id="email-recipients-copy-btn" type="button">Copy</button>
+          </div>
+          <p id="email-recipients-copy-status" class="email-copy-status-text"></p>
+        </div>
+
+        <div id="email-preview" class="email-preview-box"></div>
+        <div class="email-btn-row">
+          <button id="email-copy-btn" type="button">Copy Email to Clipboard</button>
+          <p id="email-copy-status" class="email-copy-status-text"></p>
+        </div>
       </section>
     </main>
+
+    <!-- Mobile bottom nav (hidden on desktop) -->
+    <nav id="bottom-nav">
+      <button class="mobile-nav-btn active" data-section="songs-section"><span class="mobile-nav-icon">🎵</span><span class="mobile-nav-label">Songs</span></button>
+      <button class="mobile-nav-btn" data-section="musicians-section"><span class="mobile-nav-icon">👤</span><span class="mobile-nav-label">Musicians</span></button>
+      <button class="mobile-nav-btn" data-section="calendar-section"><span class="mobile-nav-icon">📅</span><span class="mobile-nav-label">Calendar</span></button>
+      <button class="mobile-nav-btn" data-section="oos-section"><span class="mobile-nav-icon">📋</span><span class="mobile-nav-label">OOS</span></button>
+      <button class="mobile-nav-btn" data-section="email-section"><span class="mobile-nav-icon">✉️</span><span class="mobile-nav-label">Email</span></button>
+    </nav>
+
   </div>
+
+  <div id="modal-backdrop" class="hidden"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabaseClient.js"></script>
   <script src="js/auth.js"></script>
+  <script src="js/modal.js"></script>
   <script src="js/songs.js"></script>
   <script src="js/musicians.js"></script>
   <script src="js/calendar.js"></script>

@@ -1,3 +1,4 @@
+// ---- Song form fields ----
 const songForm = document.getElementById('song-form');
 const songIdField = document.getElementById('song-id');
 const songTitleField = document.getElementById('song-title');
@@ -16,20 +17,26 @@ const songEnergyFilter = document.getElementById('song-energy-filter');
 const songsEnergyHeader = document.getElementById('songs-th-energy');
 const songsTbody = document.getElementById('songs-tbody');
 
-const songKeysSelect = document.getElementById('song-keys-select');
-const songKeysContent = document.getElementById('song-keys-content');
-const songKeyForm = document.getElementById('song-key-form');
-const songKeyNameField = document.getElementById('song-key-name');
-const songKeyYoutubeField = document.getElementById('song-key-youtube');
-const songKeyChartField = document.getElementById('song-key-chart');
-const songKeyDefaultField = document.getElementById('song-key-default');
-const songKeyError = document.getElementById('song-key-error');
-const songKeysTbody = document.getElementById('song-keys-tbody');
+// ---- Inline key manager ----
+const sfkList = document.getElementById('sfk-list');
+const sfkNameField = document.getElementById('sfk-name');
+const sfkYoutubeField = document.getElementById('sfk-youtube');
+const sfkChartField = document.getElementById('sfk-chart');
+const sfkDefaultField = document.getElementById('sfk-default');
+const sfkAddBtn = document.getElementById('sfk-add-btn');
+const sfkError = document.getElementById('sfk-error');
 
 let allSongs = [];
-let currentSongKeysSongId = '';
-let currentSongKeys = [];
-let energySortDirection = null; // null | 'asc' | 'desc'
+let energySortDirection = null;
+
+// Each entry: { ref, dbId, name, youtube, chart, isDefault }
+// New-song mode: dbId is null (buffered until submit).
+// Edit mode: dbId is the DB UUID; DB writes happen immediately.
+let modalKeys = [];
+let modalKeyCounter = 0;
+let editingSongId = '';
+
+// ---- Reset / open helpers ----
 
 function resetSongForm() {
   songForm.reset();
@@ -37,30 +44,40 @@ function resetSongForm() {
   songSubmitBtn.textContent = 'Add Song';
   songCancelBtn.classList.add('hidden');
   songError.textContent = '';
-  songForm.classList.add('hidden');
+  closeModal();
+}
+
+function resetKeyInputs() {
+  sfkNameField.value = '';
+  sfkYoutubeField.value = '';
+  sfkChartField.value = '';
+  sfkDefaultField.checked = false;
+  sfkError.textContent = '';
 }
 
 addSongBtn.addEventListener('click', () => {
   resetSongForm();
-  songForm.classList.remove('hidden');
-  songForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  editingSongId = '';
+  modalKeys = [];
+  modalKeyCounter = 0;
+  resetKeyInputs();
+  renderModalKeys();
+  songCancelBtn.classList.remove('hidden');
+  openModal(songForm);
 });
 
+// ---- Load & render songs ----
+
 async function loadSongs() {
-  // song_keys embedded so the main table can show each song's default key/links
   const { data, error } = await supabaseClient
     .from('songs')
     .select('*, song_keys(*)')
     .order('title', { ascending: true });
 
-  if (error) {
-    console.error('Error loading songs:', error);
-    return;
-  }
+  if (error) { console.error('Error loading songs:', error); return; }
 
   allSongs = data;
   renderSongs(getFilteredSongs());
-  populateSongKeysDropdown();
 }
 
 function getDefaultKey(song) {
@@ -81,9 +98,7 @@ function getFilteredSongs() {
   );
 
   const energyValue = songEnergyFilter.value;
-  if (energyValue) {
-    filtered = filtered.filter((song) => song.energy === energyValue);
-  }
+  if (energyValue) filtered = filtered.filter((s) => s.energy === energyValue);
 
   if (energySortDirection) {
     filtered = [...filtered].sort((a, b) => {
@@ -125,7 +140,6 @@ function renderSongs(songs) {
       <td>
         <button class="edit-btn" data-id="${song.id}">Edit</button>
         <button class="delete-btn" data-id="${song.id}">Delete</button>
-        <button class="manage-keys-btn" data-id="${song.id}">Keys</button>
       </td>
     `;
 
@@ -136,6 +150,8 @@ function renderSongs(songs) {
 function findSongById(id) {
   return allSongs.find((s) => s.id === id);
 }
+
+// ---- Form submit ----
 
 songForm.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -155,15 +171,22 @@ songForm.addEventListener('submit', async (e) => {
     notes: songNotesField.value || null
   };
 
-  const editingId = songIdField.value;
+  if (editingSongId) {
+    const { error } = await supabaseClient.from('songs').update(songData).eq('id', editingSongId);
+    if (error) { songError.textContent = 'Could not save song. ' + error.message; return; }
+  } else {
+    const { data: newSong, error } = await supabaseClient.from('songs').insert(songData).select().single();
+    if (error) { songError.textContent = 'Could not save song. ' + error.message; return; }
 
-  const { error } = editingId
-    ? await supabaseClient.from('songs').update(songData).eq('id', editingId)
-    : await supabaseClient.from('songs').insert(songData);
-
-  if (error) {
-    songError.textContent = 'Could not save song. ' + error.message;
-    return;
+    for (const k of modalKeys) {
+      await supabaseClient.from('song_keys').insert({
+        song_id: newSong.id,
+        song_key: k.name,
+        youtube_link: k.youtube || null,
+        chord_chart_link: k.chart || null,
+        is_default: k.isDefault
+      });
+    }
   }
 
   resetSongForm();
@@ -171,6 +194,8 @@ songForm.addEventListener('submit', async (e) => {
 });
 
 songCancelBtn.addEventListener('click', resetSongForm);
+
+// ---- Table row actions ----
 
 songsTbody.addEventListener('click', async (e) => {
   const id = e.target.dataset.id;
@@ -191,8 +216,11 @@ songsTbody.addEventListener('click', async (e) => {
 
     songSubmitBtn.textContent = 'Update Song';
     songCancelBtn.classList.remove('hidden');
-    songForm.classList.remove('hidden');
-    songForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    editingSongId = song.id;
+    await loadModalKeysForEdit(song.id);
+
+    openModal(songForm);
   }
 
   if (e.target.classList.contains('delete-btn')) {
@@ -200,17 +228,8 @@ songsTbody.addEventListener('click', async (e) => {
     if (!confirmed) return;
 
     const { error } = await supabaseClient.from('songs').delete().eq('id', id);
-    if (error) {
-      alert('Could not delete song: ' + error.message);
-      return;
-    }
+    if (error) { alert('Could not delete song: ' + error.message); return; }
     loadSongs();
-  }
-
-  if (e.target.classList.contains('manage-keys-btn')) {
-    songKeysSelect.value = id;
-    songKeysSelect.dispatchEvent(new Event('change'));
-    songKeysSelect.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 });
 
@@ -222,130 +241,191 @@ songsEnergyHeader.addEventListener('click', () => {
   renderSongs(getFilteredSongs());
 });
 
-// ---- Manage Song Keys ----
+// ---- Inline key manager ----
 
-function populateSongKeysDropdown() {
-  const previousValue = songKeysSelect.value;
-  songKeysSelect.innerHTML = '<option value="">Select a song</option>' +
-    allSongs.map((s) => `<option value="${s.id}">${s.title}</option>`).join('');
-  songKeysSelect.value = previousValue;
-}
+async function loadModalKeysForEdit(songId) {
+  modalKeys = [];
+  modalKeyCounter = 0;
+  resetKeyInputs();
 
-songKeysSelect.addEventListener('change', async () => {
-  currentSongKeysSongId = songKeysSelect.value;
-
-  if (!currentSongKeysSongId) {
-    songKeysContent.classList.add('hidden');
-    return;
-  }
-
-  songKeysContent.classList.remove('hidden');
-  await loadSongKeys();
-});
-
-async function loadSongKeys() {
   const { data, error } = await supabaseClient
     .from('song_keys')
     .select('*')
-    .eq('song_id', currentSongKeysSongId)
+    .eq('song_id', songId)
     .order('song_key', { ascending: true });
 
-  if (error) {
-    console.error('Error loading song keys:', error);
-    return;
+  if (!error && data) {
+    modalKeys = data.map((k) => ({
+      ref: k.id,
+      dbId: k.id,
+      name: k.song_key,
+      youtube: k.youtube_link || '',
+      chart: k.chord_chart_link || '',
+      isDefault: k.is_default,
+      _editing: false
+    }));
   }
 
-  currentSongKeys = data;
-  renderSongKeys();
+  renderModalKeys();
 }
 
-function renderSongKeys() {
-  songKeysTbody.innerHTML = '';
-
-  currentSongKeys.forEach((k) => {
-    const links = [
-      k.youtube_link ? `<a href="${k.youtube_link}" target="_blank">YouTube</a>` : '',
-      k.chord_chart_link ? `<a href="${k.chord_chart_link}" target="_blank">Chart</a>` : ''
-    ].filter(Boolean).join(' / ');
-
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${k.song_key}</td>
-      <td>${k.is_default ? '★ Default' : ''}</td>
-      <td>${links}</td>
-      <td>
-        ${k.is_default ? '' : `<button class="make-default-key-btn" data-id="${k.id}">Make Default</button>`}
-        <button class="remove-key-btn" data-id="${k.id}">Remove</button>
-      </td>
-    `;
-    songKeysTbody.appendChild(tr);
-  });
+function esc(str) {
+  return String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-songKeyForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  songKeyError.textContent = '';
-
-  const keyName = songKeyNameField.value.trim();
-  if (!keyName) {
-    songKeyError.textContent = 'Please enter a key.';
+function renderModalKeys() {
+  if (!modalKeys.length) {
+    sfkList.innerHTML = '<p class="sfk-empty">No keys yet — add one below.</p>';
     return;
   }
 
-  // First key for a song always becomes the default, even if the box isn't checked
-  const makeDefault = songKeyDefaultField.checked || currentSongKeys.length === 0;
+  sfkList.innerHTML = modalKeys.map((k) => {
+    if (k._editing) {
+      return `
+        <div class="sfk-key-row sfk-key-editing">
+          <input class="sfk-edit-name" type="text" value="${esc(k.name)}" placeholder="Key">
+          <input class="sfk-edit-youtube" type="url" value="${esc(k.youtube)}" placeholder="YouTube link">
+          <input class="sfk-edit-chart" type="url" value="${esc(k.chart)}" placeholder="Chord chart link">
+          <span class="sfk-key-actions">
+            <button type="button" class="sfk-save-btn" data-ref="${k.ref}">Save</button>
+            <button type="button" class="sfk-cancel-edit-btn" data-ref="${k.ref}">Cancel</button>
+          </span>
+        </div>`;
+    }
+    return `
+      <div class="sfk-key-row">
+        <span class="sfk-key-name">${esc(k.name)}</span>
+        ${k.isDefault ? '<span class="sfk-key-star">★</span>' : ''}
+        ${k.youtube ? `<a href="${esc(k.youtube)}" target="_blank" class="sfk-key-link">YouTube</a>` : ''}
+        ${k.chart ? `<a href="${esc(k.chart)}" target="_blank" class="sfk-key-link">Chart</a>` : ''}
+        <span class="sfk-key-actions">
+          ${!k.isDefault ? `<button type="button" class="sfk-default-btn" data-ref="${k.ref}">Default</button>` : ''}
+          <button type="button" class="sfk-edit-btn" data-ref="${k.ref}">Edit</button>
+          <button type="button" class="sfk-remove-btn" data-ref="${k.ref}">×</button>
+        </span>
+      </div>`;
+  }).join('');
+}
 
-  if (makeDefault) {
-    await supabaseClient
-      .from('song_keys')
-      .update({ is_default: false })
-      .eq('song_id', currentSongKeysSongId)
-      .eq('is_default', true);
+sfkAddBtn.addEventListener('click', async () => {
+  sfkError.textContent = '';
+  const keyName = sfkNameField.value.trim();
+  if (!keyName) { sfkError.textContent = 'Key name is required.'; return; }
+
+  const makeDefault = sfkDefaultField.checked || modalKeys.length === 0;
+
+  if (!editingSongId) {
+    // New song: buffer in memory until form submit
+    if (makeDefault) modalKeys.forEach((k) => (k.isDefault = false));
+    modalKeys.push({
+      ref: `t${modalKeyCounter++}`,
+      dbId: null,
+      name: keyName,
+      youtube: sfkYoutubeField.value.trim(),
+      chart: sfkChartField.value.trim(),
+      isDefault: makeDefault,
+      _editing: false
+    });
+  } else {
+    // Editing: write to DB immediately
+    if (makeDefault) {
+      await supabaseClient.from('song_keys')
+        .update({ is_default: false })
+        .eq('song_id', editingSongId)
+        .eq('is_default', true);
+      modalKeys.forEach((k) => (k.isDefault = false));
+    }
+
+    const { data, error } = await supabaseClient.from('song_keys').insert({
+      song_id: editingSongId,
+      song_key: keyName,
+      youtube_link: sfkYoutubeField.value.trim() || null,
+      chord_chart_link: sfkChartField.value.trim() || null,
+      is_default: makeDefault
+    }).select().single();
+
+    if (error) { sfkError.textContent = 'Could not add key. ' + error.message; return; }
+
+    modalKeys.push({
+      ref: data.id,
+      dbId: data.id,
+      name: data.song_key,
+      youtube: data.youtube_link || '',
+      chart: data.chord_chart_link || '',
+      isDefault: data.is_default,
+      _editing: false
+    });
   }
 
-  const { error } = await supabaseClient.from('song_keys').insert({
-    song_id: currentSongKeysSongId,
-    song_key: keyName,
-    youtube_link: songKeyYoutubeField.value || null,
-    chord_chart_link: songKeyChartField.value || null,
-    is_default: makeDefault
-  });
-
-  if (error) {
-    songKeyError.textContent = 'Could not add key. ' + error.message;
-    return;
-  }
-
-  songKeyForm.reset();
-  await loadSongKeys();
-  loadSongs();
+  resetKeyInputs();
+  renderModalKeys();
 });
 
-songKeysTbody.addEventListener('click', async (e) => {
-  const id = e.target.dataset.id;
-  if (!id) return;
+sfkList.addEventListener('click', async (e) => {
+  const ref = e.target.dataset.ref;
+  if (!ref) return;
+  const key = modalKeys.find((k) => k.ref === ref);
+  if (!key) return;
 
-  if (e.target.classList.contains('make-default-key-btn')) {
-    await supabaseClient
-      .from('song_keys')
-      .update({ is_default: false })
-      .eq('song_id', currentSongKeysSongId)
-      .eq('is_default', true);
-    await supabaseClient.from('song_keys').update({ is_default: true }).eq('id', id);
-    await loadSongKeys();
-    loadSongs();
+  if (e.target.classList.contains('sfk-edit-btn')) {
+    key._editing = true;
+    renderModalKeys();
+    return;
   }
 
-  if (e.target.classList.contains('remove-key-btn')) {
-    const confirmed = confirm('Remove this key? Past services that used it will show a blank key going forward.');
-    if (!confirmed) return;
+  if (e.target.classList.contains('sfk-cancel-edit-btn')) {
+    key._editing = false;
+    renderModalKeys();
+    return;
+  }
 
-    const { error } = await supabaseClient.from('song_keys').delete().eq('id', id);
-    if (error) {
-      alert('Could not remove: ' + error.message);
-      return;
+  if (e.target.classList.contains('sfk-save-btn')) {
+    sfkError.textContent = '';
+    const row = e.target.closest('.sfk-key-row');
+    const newName = row.querySelector('.sfk-edit-name').value.trim();
+    const newYoutube = row.querySelector('.sfk-edit-youtube').value.trim();
+    const newChart = row.querySelector('.sfk-edit-chart').value.trim();
+
+    if (!newName) { sfkError.textContent = 'Key name is required.'; return; }
+
+    if (editingSongId && key.dbId) {
+      const { error } = await supabaseClient.from('song_keys').update({
+        song_key: newName,
+        youtube_link: newYoutube || null,
+        chord_chart_link: newChart || null
+      }).eq('id', key.dbId);
+      if (error) { sfkError.textContent = 'Could not update key. ' + error.message; return; }
     }
-    await loadSongKeys();
-    loadSongs();
+
+    key.name = newName;
+    key.youtube = newYoutube;
+    key.chart = newChart;
+    key._editing = false;
+    renderModalKeys();
+    return;
+  }
+
+  if (e.target.classList.contains('sfk-remove-btn')) {
+    if (key.dbId) {
+      const confirmed = confirm('Remove this key? Past services using it will show no key.');
+      if (!confirmed) return;
+      const { error } = await supabaseClient.from('song_keys').delete().eq('id', key.dbId);
+      if (error) { sfkError.textContent = 'Could not remove key. ' + error.message; return; }
+    }
+
+    modalKeys = modalKeys.filter((k) => k.ref !== ref);
+    renderModalKeys();
+  }
+
+  if (e.target.classList.contains('sfk-default-btn')) {
+    if (editingSongId && key.dbId) {
+      await supabaseClient.from('song_keys').update({ is_default: false })
+        .eq('song_id', editingSongId).eq('is_default', true);
+      await supabaseClient.from('song_keys').update({ is_default: true }).eq('id', key.dbId);
+    }
+
+    modalKeys.forEach((k) => (k.isDefault = false));
+    key.isDefault = true;
+    renderModalKeys();
   }
 });
