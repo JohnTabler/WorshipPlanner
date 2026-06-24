@@ -26,7 +26,7 @@ const NAMED_ROLES = new Set(['Vocals', 'Rhythm Guitar', 'Electric Guitar', 'Bass
 
 const ROLE_KEYWORDS = {
   'Vocals': ['vocal', 'voice', 'sing'],
-  'Rhythm Guitar': ['rhythm guitar', 'acoustic guitar', 'rhythm'],
+  'Rhythm Guitar': ['rhythm guitar', 'acoustic guitar', 'rhythm', 'acoustic'],
   'Electric Guitar': ['electric guitar', 'lead guitar', 'electric'],
   'Bass': ['bass'],
   'Keys': ['key', 'piano', 'keyboard'],
